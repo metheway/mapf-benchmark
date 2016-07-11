@@ -10,21 +10,27 @@ import utilities.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a reservation table for constrained solvers.
+ */
 public class Reservation {
-
-    // TODO edge coordinate class
 
     private Map<Coordinate, Coordinate> reservedCoordinates;
     private Map<Node, Integer> agentDestinations;
     private int lastTimeStep;
 
+    /**
+     * Constructor that creates an empty reservation table
+     */
     public Reservation() {
         reservedCoordinates = new HashMap<>();
         agentDestinations = new HashMap<>();
     }
 
-    // reserve the coordinates in a Path
-    // Map instead of Set so that we can tell which path a coordinate belongs to
+    /**
+     * Reserve all coordinates in a given path
+     * @param path the path to get reservations from
+     */
     public void reservePath(Path path) {
         if (path.getLast() instanceof SingleAgentState) {
             path.forEach(state ->
@@ -46,7 +52,10 @@ public class Reservation {
                 ((SingleAgentState)singleAgentState.predecessor()).coordinate());
     }
 
-    // free up reservations from a path
+    /**
+     * Free all reservations from a given Path
+     * @param path the Path to remove reservations from
+     */
     public void freeReservation(Path path) {
         if (path.getLast() instanceof SingleAgentState) {
             path.forEach(state ->
@@ -59,8 +68,15 @@ public class Reservation {
             MultiAgentState end = (MultiAgentState) path.getLast();
             end.getSingleAgentStates().forEach(singleAgentState -> freeDestination(singleAgentState.coordinate()));
         }
+        updateLastTimeStep();
     }
 
+    /**
+     * Returns whether the given state is considered valid
+     * given the reservations.
+     * @param state the state to evaluate
+     * @return true if the state is valid, false otherwise
+     */
     public boolean isValid(State state) {
         if (state instanceof SingleAgentState) {
             SingleAgentState singleAgentState = (SingleAgentState) state;
@@ -82,17 +98,41 @@ public class Reservation {
         }
     }
 
+    /**
+     * Reserve a single coordinate
+     * @param coordinate the coordinate to reserve
+     */
     public void reserveCoordinate(Coordinate coordinate) {
         reservedCoordinates.put(coordinate, null);
         lastTimeStep = Math.max(coordinate.getTimeStep(), lastTimeStep);
     }
 
-    private void reserveDestination(Coordinate coordinate) {
+    /**
+     * Free a single coordinate from the reservations
+     * @param coordinate the coordinate to free
+     */
+    public void freeCoordinate(Coordinate coordinate) {
+        reservedCoordinates.remove(coordinate);
+        agentDestinations.remove(coordinate.getNode());
+        updateLastTimeStep();
+    }
+
+
+    /**
+     * Reserve a destination, creating a reservation that holds
+     * past the time step of the coordinate
+     * @param coordinate
+     */
+    public void reserveDestination(Coordinate coordinate) {
         lastTimeStep = Math.max(coordinate.getTimeStep(), lastTimeStep);
         agentDestinations.put(coordinate.getNode(), coordinate.getTimeStep());
     }
 
-    private void freeDestination(Coordinate coordinate) {
+    /**
+     * Free a destination reservation
+     * @param coordinate the coordinate to free
+     */
+    public void freeDestination(Coordinate coordinate) {
         agentDestinations.remove(coordinate.getNode());
     }
 
@@ -105,7 +145,8 @@ public class Reservation {
                 && agentDestinations.get(coordinate.getNode()) <= coordinate.getTimeStep();
     }
 
-    public boolean transpositionOccurred(Coordinate previous, Coordinate current) {
+
+    private boolean transpositionOccurred(Coordinate previous, Coordinate current) {
         boolean result = false;
         if (previous == null) return result;
         current.setTimeStep(current.getTimeStep() - 1);
@@ -118,13 +159,28 @@ public class Reservation {
         return result;
     }
 
+    /**
+     * Returns the last time step in the reservation
+     * table, excluding agent destinations
+     * @return the last time step of a reservation
+     */
     public int getLastTimeStep() {
         return lastTimeStep;
     }
 
+    /**
+     * Resets the reservation table
+     */
     public void clear() {
         reservedCoordinates.clear();
         agentDestinations.clear();
         lastTimeStep = 0;
+    }
+
+    private void updateLastTimeStep() {
+        lastTimeStep = 0;
+        for (Coordinate coordinate : reservedCoordinates.keySet()) {
+            lastTimeStep = Math.max(lastTimeStep, coordinate.getTimeStep());
+        }
     }
 }

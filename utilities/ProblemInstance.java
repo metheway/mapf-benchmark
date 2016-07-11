@@ -20,7 +20,8 @@ public class ProblemInstance {
     private String mapTitle;
 
 	/**
-	 * Read the agents from a file of serialized agents
+	 * Constructor that creates a problem instance using the given
+     * graph, with agents from a file of serialized agents
 	 * @param agentsFile The file with serialized agent objects
 	 */
 	public ProblemInstance(Graph gr, File agentsFile){
@@ -30,7 +31,13 @@ public class ProblemInstance {
             throw new IllegalArgumentException("Map " + mapTitle + " not compatible with problem instance!\n " +
                                                 "Expected " + graph.getMapTitle());
 	}
-	
+
+    /**
+     * Constructor that creates a problem instance using the given
+     * graph and with the given agents
+     * @param graph the graph to use
+     * @param agents the agents in the problem
+     */
 	public ProblemInstance(Graph graph, List<Agent> agents) {
 		this.graph = graph;
 		this.agents = agents;
@@ -39,6 +46,11 @@ public class ProblemInstance {
                                                                                 + agents);
 	}
 
+    /**
+     *
+     * @param graph
+     * @param nAgents
+     */
 	public ProblemInstance(Graph graph, int nAgents) {
         this.graph = graph;
         this.agents = graph.generateRandomAgents(nAgents);
@@ -48,6 +60,11 @@ public class ProblemInstance {
 		goalPositions = agentGoals();
 	}
 
+    /**
+     * Convenience method to add an agent to a problem instance
+     * without creating a new problem instance
+     * @param newAgent the agent to add
+     */
     public void addAgent(Agent newAgent) {
         List<Agent> current = new ArrayList<>(agents);
         current.add(new Agent(newAgent.position(), newAgent.goal(), current.size()));
@@ -57,6 +74,12 @@ public class ProblemInstance {
 		updateGoalPositions();
     }
 
+    /**
+     * Returns a problem instance that
+     * represents the union of two others
+     * @param other the other problem instance
+     * @return the union of this problem instance with the other one
+     */
     public ProblemInstance join(ProblemInstance other) {
         List<Agent> joinAgents = new ArrayList<>(agents);
         for (Agent agent : other.agents) {
@@ -66,30 +89,35 @@ public class ProblemInstance {
         return new ProblemInstance(graph, joinAgents);
     }
 
+    /**
+     * Returns the map associated to this problem instance
+     * @return the map associated to this problem instance
+     */
 	public ProblemMap getMap() {
 		return graph.getMap();
 	}
-	
+
+    /**
+     * Returns the list of agents associated to this problem instance
+     * @return the list of agents associated to this problem instance
+     */
 	public List<Agent> getAgents() {
 		return agents;
 	}
-	
-	public void printMap() {
-		graph.printMap();
-	}
-	
-	public int getGraphSize() {
-		return graph.getSize();
-	}
-	
-	public void setAgents(List<Agent> agents) {
-		this.agents = agents;
-	}
-	
+
+    /**
+     * Returns the graph associated to this problem instance
+     * @return the graph associated to this problem instance
+     */
 	public Graph getGraph() {
 		return graph;
 	}
-	
+
+    /**
+     * Returns the nodes that are goal locations for agents in
+     * this problem instance
+     * @return the goal nodes in this problem instance
+     */
 	public List<Node> getGoal() {
 		return goalPositions;
 	}
@@ -101,7 +129,14 @@ public class ProblemInstance {
 		}
 		return goalList;
 	}
-	
+
+    /**
+     * Serialize this problem instance and
+     * store it in a file with the given name
+     * in a directory
+     * @param path the path to the directory
+     * @param fileName name to give the problem instance
+     */
 	public void serialize(String path, String fileName) {
 		try {
 			FileOutputStream fileOut = new FileOutputStream(path + fileName + ".bin");
@@ -116,8 +151,8 @@ public class ProblemInstance {
 			e.printStackTrace();
 		}
 	}
-	
-	public List<Agent> deserializeAgents(File agentsFile) {
+
+	private List<Agent> deserializeAgents(File agentsFile) {
 		List<Agent> agentList = new ArrayList<Agent>();
 		Integer numAgents = 0;
 		try {
@@ -139,7 +174,8 @@ public class ProblemInstance {
 		System.out.println(numAgents);
 		return agentList;
 	}
-	
+
+
 	private boolean duplicateGoalsOrStarts(List<Agent> agentList) {
 		HashSet<Integer> goals = new HashSet<Integer>();
 		HashSet<Integer> starts = new HashSet<Integer>();

@@ -28,7 +28,7 @@ public class TDHeuristic {
     }
 
     private void initLookup(ProblemInstance problem) {
-        lookupTable = new double[problem.getAgents().size()][problem.getGraphSize()];
+        lookupTable = new double[problem.getAgents().size()][problem.getGraph().getSize()];
         // run UCS
         // fill lookupTable with values from the closed list when UCS finishes
         List<ProblemInstance> roots = rootStates(problem);

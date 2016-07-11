@@ -1,14 +1,10 @@
 package utilities;
-// TODO obstacle neighbors should be null or all point to the same object
-// neighbor costs
-// tree costs 1.5
-// separate costs from time steps
-// class for static variables (cost, directions)
-// serializable class for reading in the agent goals
 
 import constants.Positions;
 
-// a node on the graph of the map
+/**
+ * Class that represents a vertex in a graph
+ */
 public class Node {
 	
 	private char type;
@@ -16,8 +12,14 @@ public class Node {
 	private Node[] neighbors;
 	private int indexInMap;
 	private int indexInGraph;
-		
-	// creates a node with empty neighbors (added in later) of type nodeType
+
+	/**
+	 * Constructor that creates a node with the given fields
+	 * @param nodeType type of this node
+	 * @param c connectedness of the graph
+	 * @param indexInMap index in the map
+	 * @param indexInGraph index in the graph
+	 */
 	public Node(char nodeType, Connected c, int indexInMap, int indexInGraph) {
 		type = nodeType;
 		connectedness = c;
@@ -25,31 +27,54 @@ public class Node {
 		this.indexInMap = indexInMap;
 		this.indexInGraph = indexInGraph;
 	}
-	
-	// returns an array of references to the nodes connected to this one
-	public Node[] getNeighbors() { 
+
+    /**
+     * Returns an array of nodes that
+     * are neighbors with this node
+     * @return this node's neighbors
+     */
+	public Node[] getNeighbors() {
 		return neighbors;
 	}
-	
+
+    /**
+     * Returns the index of this node in the map
+     * @return the index of this node in the map
+     */
 	public int getIndexInMap() {
 		return indexInMap;
 	}
 
+    /**
+     * Returns the index of this node in the graph
+     * @return the index of this node in the graph
+     */
 	public int getIndexInGraph() {
 		return indexInGraph;
 	}
-	
-	// returns the type of the node
+
+    /**
+     * Returns the type of this node
+     * @return the type of this node
+     */
 	public char getType() {
 		return type;
 	}
-	
-	// adds a neighbor at the specified position (documented at top)
+
+    /**
+     * Sets the neighbor at position to the new neighbor
+     * @param newNeighbor the new neighbor node
+     * @param position the position to add
+     */
 	public void addNeighbor(Node newNeighbor, int position) {
 		neighbors[position] = newNeighbor;
 	}
-	
-	// returns whether the node can be reached by a neighbor in the 8-connected case
+
+    /**
+     * Returns whether a neighbor is reachable
+     * @param position relative position of neighbor
+     * @return true if the neighbor is reachable, false otherwise
+     */
 	public boolean isReachable(int position) {
 		if (connNumber(connectedness) == 4) return true;
 		if (position == Positions.TOP_RIGHT) {
@@ -63,9 +88,14 @@ public class Node {
 		}
 		return true;
 	}
-	
-	// returns an array of the positions of the node's neighbors
-	public int[] getNeighborPositions(int iterator, int lineWidth) {
+
+    /**
+     * Convenience method for getting neighbor positions in the map
+     * @param iterator value of loop control variable
+     * @param lineWidth width of a line in the buffered map
+     * @return the neighbor positions
+     */
+    public int[] getNeighborPositions(int iterator, int lineWidth) {
 		if (connNumber(connectedness) == 4) {  // four-connected
 			return new int[] {
 					iterator + 1,         // right

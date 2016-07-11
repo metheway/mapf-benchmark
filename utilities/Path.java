@@ -55,14 +55,20 @@ public class Path implements Iterable<State> {
         return stateList.get(timeStep);
     }
 
+    /**
+     * Returns the last state in this path
+     * @return the last state in this path
+     */
     public State getLast() {
         return stateList.get(stateList.size() - 1);
     }
 
+    @Override
     public Iterator<State> iterator() {
         return stateList.iterator();
     }
 
+    @Override
     public String toString() {
         return "Length: " + size() + " Cost: " + cost() + "\n" + stateList.toString();
     }

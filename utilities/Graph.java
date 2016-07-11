@@ -151,8 +151,6 @@ public class Graph {
 	private boolean isBorderNode(int iterator, int lineWidth) {
 		return (iterator%lineWidth == 0 || (iterator + 1)%lineWidth == 0);
 	}
-	
-	// print the map
 
     /**
      * Print the map to console for testing purposes
@@ -196,7 +194,7 @@ public class Graph {
     /**
      * Accessor for the title of the map associated
      * to this graph
-     * @return
+     * @return the title of the map associated to this graph
      */
 	public String getMapTitle() {
 		return mapTitle;

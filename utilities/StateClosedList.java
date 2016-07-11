@@ -5,10 +5,16 @@ import solvers.astar.State;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Maintains a closed list of individual states
+ */
 public class StateClosedList implements IClosedList {
 
     private Map<State, State> map;
 
+    /**
+     * Creates an empty closed list
+     */
     public StateClosedList() {
         map = new HashMap<>();
     }
@@ -37,6 +43,11 @@ public class StateClosedList implements IClosedList {
         map.clear();
     }
 
+    /**
+     * Returns the map that backs
+     * this closed list
+     * @return the map that backs this closed list
+     */
     public Map<State, State> getMap() {
         return map;
     }

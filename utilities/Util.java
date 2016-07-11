@@ -2,28 +2,25 @@ package utilities;
 
 
 import constants.CostFunction;
-import solvers.Reservation;
 import solvers.astar.State;
 import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
+/**
+ * Methods that are used often but disparately
+ */
 public class Util {
-    // TODO generalize transposition check
-    public static HashSet<Coordinate> reservedFromPath(Path path) {
-        HashSet<Coordinate> reservation = new HashSet<>();
-        if (path.getLast() instanceof SingleAgentState) {
-            for (State s : path) reservation.add(((SingleAgentState) s).coordinate());
-        } else {
-            for (State s : path) ((MultiAgentState) s).getSingleAgentStates()
-                    .forEach(singleAgentState -> reservation.add(singleAgentState.coordinate()));
-        }
-        return reservation;
-    }
 
+    /**
+     * Return a path that represents a collection of paths
+     * merged into a single path of multi-agent states
+     * @param paths the paths to merge
+     * @param problemInstance the problem instance they came from
+     * @return the merged path
+     */
     public static Path mergePaths(List<Path> paths, ProblemInstance problemInstance) {
         List<State> result = new ArrayList<>();
         List<List<SingleAgentState>> pre = new ArrayList<>();
@@ -51,7 +48,7 @@ public class Util {
         return new Path(result);
     }
 
-    public static int lengthOfLongestPath(List<Path> paths) {
+    private static int lengthOfLongestPath(List<Path> paths) {
         int max = 0;
         for (Path path : paths) {
             if (path.size() > max) max = path.size();
