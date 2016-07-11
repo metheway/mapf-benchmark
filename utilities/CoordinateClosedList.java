@@ -8,11 +8,20 @@ import solvers.states.SingleAgentState;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Maintains a closed list of coordinates, rather than
+ * individual states.
+ */
 public class CoordinateClosedList implements IClosedList{
 
     private Map<Coordinate, Double> map;
     private Reservation reservation;
 
+    /**
+     * Constructor that creates an empty closed list given
+     * a reservation
+     * @param reservation the reservation
+     */
     public CoordinateClosedList(Reservation reservation) {
         this.reservation = reservation;
         map = new HashMap<>();

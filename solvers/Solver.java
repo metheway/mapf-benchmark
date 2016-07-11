@@ -7,7 +7,6 @@ import utilities.ProblemInstance;
  * Interface that specifies methods for multi-agent solvers
  */
 public interface Solver {
-    // remove root as param; add createRoot(ProblemInstance)
 
     /**
      * Solve a given problem instance

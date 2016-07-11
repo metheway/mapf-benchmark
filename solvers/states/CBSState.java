@@ -13,7 +13,7 @@ import java.util.List;
  * subject to constraints determined by predecessors in the tree.
  */
 public class CBSState extends State {
-    
+
     private double cost;
     Coordinate constraint;
 

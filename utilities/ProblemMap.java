@@ -1,14 +1,15 @@
 package utilities;
 
-import java.util.HashSet;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Random;
-import java.util.Set;
 
 import constants.Terrain;
 
+/**
+ * Class that represents a map on which a problem must be solved
+ */
 public class ProblemMap {
 	
 	private String mapType;
@@ -16,9 +17,17 @@ public class ProblemMap {
 	private int width;
 	private String content;
 	private Random rand;
-	
-	// generates a random map with a probability of obstacles occurring
-	public ProblemMap(double obstacleProbability, int height, int width) {
+
+    /**
+     * Constructor that creates a map such that
+     * a character in the map is an obstacle with
+     * probability obstacleProbability and given
+     * dimensions
+     * @param obstacleProbability probability that a character is an obstacle
+     * @param height height of the map
+     * @param width width of the maps
+     */
+    public ProblemMap(double obstacleProbability, int height, int width) {
 		rand = new Random();
 		mapType = "rand";
 		this.height = height;
@@ -27,7 +36,11 @@ public class ProblemMap {
 		
 	}
 
-	// creates a map from a benchmark file
+    /**
+     * Parses a map from a file
+     * @param mapFile the file to get the map from
+     * @throws FileNotFoundException
+     */
 	public ProblemMap(File mapFile) throws FileNotFoundException{
 		Scanner mapScanner = new Scanner(mapFile);
 		mapScanner.next(); mapType = mapScanner.next();
@@ -36,13 +49,7 @@ public class ProblemMap {
 		mapScanner.next();
 		parse(mapScanner);
 	}
-	
-	public ProblemMap(String mapContent, int width, int height) {
-		content = mapContent;
-		this.width = width;
-		this.height = height;
-	}
-	
+
 	// returns the map
 	private void generateMap(double obstacleProbability) {
 		StringBuilder processed = new StringBuilder();
@@ -67,22 +74,35 @@ public class ProblemMap {
 		content = processed.toString();
 	}
 
-	// returns the type of the map
+    /**
+     * Returns the type of the map
+     * @return the type of the map
+     */
 	public String getMapType() {
 		return mapType;
 	}
-	
-	// returns the height of the map
+
+    /**
+     * Returns the height of the map
+     * @return the height of the map
+     */
 	public int getHeight() {
 		return height;
 	}
-	
-	// returns the width of the map
-	public int getWidth() {
+
+    /**
+     * Returns the width of the map
+     * @return the width of the map
+     */
+    public int getWidth() {
 		return width;
 	}
-	
-	// returns the content of the map (including buffer)
+
+    /**
+     * Returns a string with the raw content
+     * of the file this map was created from
+     * @return a string with this map's content
+     */
 	public String getContent() {
 		return content;
 	}
@@ -108,8 +128,10 @@ public class ProblemMap {
 	private boolean onBorder(int iterator, int lineWidth) {
 		return (iterator%lineWidth == 0 || (iterator + 1)%lineWidth == 0);
 	}
-	
-	// prints the original map
+
+    /**
+     * Print the map in a nice way
+     */
 	public void prettyPrintMap() {
 		int bufferedWidth = width + 2;
 		// skips the obstacles put in at the beginning for convenience
