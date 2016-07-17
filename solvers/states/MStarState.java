@@ -6,12 +6,12 @@ import utilities.ProblemInstance;
 
 import java.util.List;
 
-public class MStarState /*extends State*/ {
+public class MStarState extends State {
 /*
 //    /*
     fields: set of MultiAgentStates, backpointer
 //     */
-/*
+
     // for each agent, call multiagent constructor with single agent
     // store in set of multiagentstates
     // set predecessor to null
@@ -24,7 +24,7 @@ public class MStarState /*extends State*/ {
     /*
     Create the successors call unite if needed. if called unite add all predecessors to the list of returned states
      */
-/*    @Override
+    @Override
     public List<State> expand(ProblemInstance problem) {
         return null;
     }
@@ -53,5 +53,13 @@ public class MStarState /*extends State*/ {
         return false;
     }
 
-    */
+    @Override
+    protected void calculateCost(ProblemInstance problemInstance) {
+
+    }
+
+    @Override
+    public int timeStep() {
+        return 0;
+    }
 }
