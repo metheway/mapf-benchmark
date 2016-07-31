@@ -7,6 +7,7 @@ import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -54,6 +55,56 @@ public class Util {
             if (path.size() > max) max = path.size();
         }
         return max;
+    }
+
+    public static Conflict conflict(int index, int startIndex, List<Path> pathList) {
+        Path thisPath = pathList.get(index);
+        for (int i = startIndex; i < pathList.size(); i++) {
+            if (i != index) {
+                Path path = pathList.get(i);
+                //System.out.println("checking path " + i);
+                for (int t = 1; t < thisPath.size(); t++) {
+                    MultiAgentState odState = (MultiAgentState) thisPath.get(t);
+                    MultiAgentState compareWith;
+                    if (t < path.size()) compareWith = (MultiAgentState) path.get(t);
+                    else compareWith = (MultiAgentState) path.get(path.size() - 1);
+
+                    List<SingleAgentState> maStateSingle = odState.getSingleAgentStates();
+                    List<SingleAgentState> compareWithSingle = compareWith.getSingleAgentStates();
+                    HashSet<SingleAgentState> filter = new HashSet<>(maStateSingle);
+                    filter.retainAll(compareWithSingle);
+
+                    boolean filterEmpty = filter.isEmpty();
+                    boolean transpositionOccurred = transposition(index, maStateSingle, i, compareWithSingle, t, pathList);
+                    if (!filterEmpty || transpositionOccurred) {
+                        //System.out.println("conflict found between path " + index + " and path " + i + " at time step " + t);
+                        //System.out.println("conflict type: " + ((!filterEmpty) ? "collision" : "transposition"));
+                        return new Conflict(t, index, i);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public static boolean transposition(int index, List<SingleAgentState> maStateSingle, int otherIndex, List<SingleAgentState> compareWithSingle, int timeStep, List<Path> pathList) {
+        List<SingleAgentState> maStatePrevSingle = ((MultiAgentState) pathList.get(index).get(timeStep - 1)).getSingleAgentStates();
+        List<SingleAgentState> compareWithPrevSingle;
+        if (timeStep - 1 < pathList.get(otherIndex).size()) compareWithPrevSingle = ((MultiAgentState) pathList.get(otherIndex).get(timeStep - 1)).getSingleAgentStates();
+        else compareWithPrevSingle = ((MultiAgentState) pathList.get(otherIndex).get(pathList.get(otherIndex).size() - 1)).getSingleAgentStates();
+
+        int indexInMaStatePrev = 0;
+        for (SingleAgentState singleAgentState : maStatePrevSingle) {
+            int indexInCompareWith = compareWithSingle.indexOf(singleAgentState);
+            if (indexInCompareWith != -1) {
+                SingleAgentState comp = compareWithPrevSingle.get(indexInCompareWith);
+                if (maStateSingle.get(indexInMaStatePrev).equals(comp)) {
+                    return true;
+                }
+            }
+            indexInMaStatePrev++;
+        }
+        return false;
     }
 
 }

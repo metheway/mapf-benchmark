@@ -1,5 +1,5 @@
 package constants;
 
-public class Keys {
-	public static final String RESERVATIONS = "R";
+public enum Keys {
+    RESERVATIONS, PREPROCESS
 }

@@ -1,6 +1,8 @@
 package utilities;
 
 import solvers.astar.State;
+import solvers.states.MultiAgentState;
+import solvers.states.SingleAgentState;
 
 import java.util.Iterator;
 import java.util.List;
@@ -70,7 +72,13 @@ public class Path implements Iterable<State> {
 
     @Override
     public String toString() {
-        return "Length: " + size() + " Cost: " + cost() + "\n" + stateList.toString();
+        String result = "";
+        for (State s : this) {
+            for (SingleAgentState singleAgentState : ((MultiAgentState) s).getSingleAgentStates()) {
+                result += singleAgentState.coordinate();
+            }
+        }
+        return result;
     }
 
 }

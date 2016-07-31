@@ -1,6 +1,7 @@
 package solvers.astar;
 
 import constants.CostFunction;
+import constants.Keys;
 import solvers.states.MultiAgentState;
 import utilities.CoordinateClosedList;
 import utilities.ProblemInstance;
@@ -29,7 +30,7 @@ public class MultiAgentAStar extends GenericAStar {
      * parameters
      * @param params a map containing parameters to alter solver behavior
      */
-    public MultiAgentAStar(HashMap<String, ?> params) {
+    public MultiAgentAStar(HashMap<Keys, Object> params) {
         super(params);
     }
 

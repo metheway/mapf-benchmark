@@ -36,7 +36,7 @@ public class Graph {
      * @throws FileNotFoundException
      */
 	public Graph(Connected c, File mapFile) throws FileNotFoundException{
-		picker = new Random();
+		picker = new Random(2016);
 		connectedness = c;
 		map = new ProblemMap(mapFile);
         mapTitle = parseMapTitle(mapFile.getAbsolutePath());
@@ -44,7 +44,7 @@ public class Graph {
 	}
 
 	public Graph(Connected c, ProblemMap problemMap) {
-		picker = new Random();
+		picker = new Random(1000);
 		connectedness = c;
 		map = problemMap;
 		mapTitle = problemMap.getMapType();
