@@ -82,19 +82,19 @@ public class SolverTest {
     public static void testCBS() throws FileNotFoundException {
         ProblemMap problemMap = new ProblemMap(new File("MAPF/src/maps/arena.map"));
         Graph graph = new Graph(Connected.EIGHT, problemMap);
-        ProblemInstance problemInstance = new ProblemInstance(graph, 40);
+        ProblemInstance problemInstance = new ProblemInstance(graph, 30);
         ConflictBasedSearch c = new ConflictBasedSearch();
-        IndependenceDetection e = new IndependenceDetection(new OperatorDecomposition());
+        IndependenceDetection e = new EnhancedID(new OperatorDecomposition());
         long t = System.currentTimeMillis();
-        System.out.println(c.solve(problemInstance));
+        System.out.println(e.solve(problemInstance));
         System.out.println((System.currentTimeMillis() - t)/1000.);
-        for (State s : c.getPath()) {
+        for (State s : e.getPath()) {
             s.printIndices();
         }
         System.out.println();
 
         t = System.currentTimeMillis();
-        System.out.println(e.solve(problemInstance));
+        System.out.println(c.solve(problemInstance));
         System.out.println((System.currentTimeMillis() - t)/1000.);
 
         System.out.println(e.getPath().cost() + " " + c.getPath().cost());
