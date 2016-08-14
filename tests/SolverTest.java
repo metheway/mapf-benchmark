@@ -25,11 +25,11 @@ public class SolverTest {
 		//testSingleAgent();
         //testMultiAgent();
         testIndependenceDetection();
-        //testReservation();
+        testReservation();
 	}
 
 	public static void testSingleAgent() throws FileNotFoundException {
-		ProblemMap problemMap = new ProblemMap(new File("MAPF/src/maps/test.map"));
+		ProblemMap problemMap = new ProblemMap(new File("src/maps/test.map"));
 		Graph graph = new Graph(Connected.EIGHT, problemMap);
 		ProblemInstance problemInstance = new ProblemInstance(graph, Collections.singletonList(new Agent(0, 4, 0)));
 		SingleAgentAStar solver = new SingleAgentAStar();
@@ -41,7 +41,7 @@ public class SolverTest {
 	}
 
 	public static void testMultiAgent() throws FileNotFoundException {
-        ProblemMap problemMap = new ProblemMap(new File("MAPF/src/maps/test.map"));
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/test.map"));
         Graph graph = new Graph(Connected.EIGHT, problemMap);
         Agent a1 = new Agent(0, 4, 0);
         Agent a2 = new Agent(5, 9, 1);
@@ -56,12 +56,12 @@ public class SolverTest {
 	}
 
     public static void testIndependenceDetection() throws FileNotFoundException {
-        ProblemMap problemMap = new ProblemMap(new File("MAPF/src/maps/arena.map"));
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/arena.map"));
         Graph graph = new Graph(Connected.EIGHT, problemMap);
         Agent a1 = new Agent(0, 11, 0);
         Agent a2 = new Agent(5, 5, 1);
         Agent a3 = new Agent(10, 12, 2);
-        ProblemInstance problemInstance = new ProblemInstance(graph,50);
+        ProblemInstance problemInstance = new ProblemInstance(graph,30);
         IndependenceDetection solver = new EnhancedID(new OperatorDecomposition());
         long start = System.currentTimeMillis();
         if (solver.solve(problemInstance)) {
@@ -74,7 +74,7 @@ public class SolverTest {
     }
 
     public static void testReservation() throws FileNotFoundException {
-        ProblemMap problemMap = new ProblemMap(new File("MAPF/src/maps/reservation_test.map"));
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/reservation_test.map"));
         Graph graph = new Graph(Connected.EIGHT, problemMap);
         ProblemInstance problemInstance = new ProblemInstance(graph, Collections.singletonList(new Agent(0, 1, 0)));
         MultiAgentAStar solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);

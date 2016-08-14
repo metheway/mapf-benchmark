@@ -8,11 +8,17 @@ import solvers.states.SingleAgentState;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Methods that are used often but disparately
  */
 public class Util {
+
+    public static Random random;
+    static {
+        random = new Random(2016);
+    }
 
     /**
      * Return a path that represents a collection of paths

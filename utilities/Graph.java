@@ -21,7 +21,6 @@ public class Graph {
 	private ProblemMap map;
 	private Connected connectedness;
 	private List<Agent> agents;
-	private Random picker;
 	private String mapTitle;
 	
 	private static final Node OBSTACLE = null;
@@ -36,7 +35,6 @@ public class Graph {
      * @throws FileNotFoundException
      */
 	public Graph(Connected c, File mapFile) throws FileNotFoundException{
-		picker = new Random();
 		connectedness = c;
 		map = new ProblemMap(mapFile);
         mapTitle = parseMapTitle(mapFile.getAbsolutePath());
@@ -44,7 +42,6 @@ public class Graph {
 	}
 
 	public Graph(Connected c, ProblemMap problemMap) {
-		picker = new Random();
 		connectedness = c;
 		map = problemMap;
 		mapTitle = problemMap.getMapType();
@@ -63,7 +60,7 @@ public class Graph {
      * @param obstacleProbability the probability of obstacles
      */
 	public Graph(Connected c, double obstacleProbability) {
-		picker = new Random();
+		Util.random = new Random();
 		connectedness = c;
 		map = new ProblemMap(obstacleProbability, 32, 32);
 		nodes = generateGraph();
@@ -125,9 +122,9 @@ public class Graph {
 		int graphSize = nodes.size();
 		
 		for (int i = 0; i < numAgents; i++) {
-			int nextStart = picker.nextInt(graphSize);
+			int nextStart = Util.random.nextInt(graphSize);
 			while (starts.contains(nextStart)) {
-				nextStart = picker.nextInt(graphSize);
+				nextStart = Util.random.nextInt(graphSize);
 			}
 			starts.add(nextStart);
 			Node nextStartNode = nodes.get(nextStart);
@@ -205,10 +202,10 @@ public class Graph {
 		Node currentNode = startNode;
         if (hasNonNullNeighbor(currentNode)) {
             for (int i = 0; i < numSteps; i++) {
-                int nextNode = picker.nextInt(connNumber(connectedness));
+                int nextNode = Util.random.nextInt(connNumber(connectedness));
                 Node successor = currentNode.getNeighbors()[nextNode];
                 while (successor == OBSTACLE || !successor.isReachable(nextNode)) {
-                    nextNode = picker.nextInt(connNumber(connectedness));
+                    nextNode = Util.random.nextInt(connNumber(connectedness));
                     successor = currentNode.getNeighbors()[nextNode];
                 }
                 currentNode = successor;

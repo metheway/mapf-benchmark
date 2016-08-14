@@ -3,7 +3,6 @@ package utilities;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Random;
 
 import constants.Terrain;
 
@@ -16,7 +15,6 @@ public class ProblemMap {
 	private int height;
 	private int width;
 	private String content;
-	private Random rand;
 
     /**
      * Constructor that creates a map such that
@@ -28,7 +26,6 @@ public class ProblemMap {
      * @param width width of the maps
      */
     public ProblemMap(double obstacleProbability, int height, int width) {
-		rand = new Random();
 		mapType = "rand";
 		this.height = height;
 		this.width = width;
@@ -60,7 +57,7 @@ public class ProblemMap {
 		for(int row = 0; row < height; row++) {
 			processed.append(Terrain.OBSTACLE);
 			for(int col = 0; col < width; col++) {
-				if(rand.nextDouble() < obstacleProbability && numObstacles < maxObstacles) {
+				if(Util.random.nextDouble() < obstacleProbability && numObstacles < maxObstacles) {
                     numObstacles++;
 					processed.append(Terrain.OBSTACLE);
 				} else {
