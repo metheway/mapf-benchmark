@@ -3,6 +3,7 @@ package solvers.c_astar;
 import solvers.ConstrainedSolver;
 import solvers.Reservation;
 import solvers.astar.SingleAgentAStar;
+import solvers.astar.State;
 import utilities.Agent;
 import utilities.Path;
 import utilities.ProblemInstance;
@@ -21,7 +22,7 @@ import java.util.HashMap;
 public class CAStar extends ConstrainedSolver {
 	
 	private Reservation reservation;
-	private HashMap<String, Reservation> params;
+	private HashMap<Keys, Object> params;
 	private List<Path> paths;
 	private ProblemInstance problemInstance;
 
@@ -32,15 +33,19 @@ public class CAStar extends ConstrainedSolver {
 		List<Agent> agents = problem.getAgents();
 		SingleAgentAStar solver = new SingleAgentAStar(params);
 		for (Agent a : agents) {
-			ProblemInstance agentProblem = new ProblemInstance(problemInstance.getGraph(), Collections.singletonList(a));
+            Agent singleton = new Agent(a.position(), a.goal(), 0);
+			ProblemInstance agentProblem = new ProblemInstance(problemInstance.getGraph(), Collections.singletonList(singleton));
 			if (!solver.solve(agentProblem)) return false;
             Path solverPath = solver.getPath();
             reservation.reservePath(solverPath);
 			paths.add(solverPath);
+            for (State s : solverPath) {
+                s.printIndices();
+            }
 		}
 		return true;
 	}
-    
+
 	private void init() {
 		params = new HashMap<>();
 		reservation = new Reservation();

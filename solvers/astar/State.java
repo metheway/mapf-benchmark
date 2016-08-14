@@ -127,7 +127,7 @@ public abstract class State implements Comparable<State> {
     /**
      * Output for debugging
      */
-    protected void printIndices() {
+    public void printIndices() {
 
     }
 

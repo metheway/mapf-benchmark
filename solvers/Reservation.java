@@ -7,7 +7,9 @@ import utilities.Coordinate;
 import utilities.Node;
 import utilities.Path;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -15,7 +17,7 @@ import java.util.Map;
  */
 public class Reservation {
 
-    private Map<Coordinate, Coordinate> reservedCoordinates;
+    public Map<Coordinate, Coordinate> reservedCoordinates;
     private Map<Node, Integer> agentDestinations;
     private int lastTimeStep;
 
@@ -88,12 +90,14 @@ public class Reservation {
                     || transpositionOccurred(singleAgentState.isRoot() ? null :
                                                                         ((SingleAgentState) singleAgentState.predecessor()).coordinate(),
                                                 singleAgentState.coordinate()));
-        } else {
+        } else if (state instanceof MultiAgentState){
             for (SingleAgentState singleAgentState : ((MultiAgentState) state).getSingleAgentStates()) {
                 if (!isValid(singleAgentState)) {
                     return false;
                 }
             }
+            return true;
+        } else {
             return true;
         }
     }
@@ -101,9 +105,10 @@ public class Reservation {
     /**
      * Reserve a single coordinate
      * @param coordinate the coordinate to reserve
+     * @param previous the coordinate that would cause a transposition
      */
-    public void reserveCoordinate(Coordinate coordinate) {
-        reservedCoordinates.put(coordinate, null);
+    public void reserveCoordinate(Coordinate coordinate, Coordinate previous) {
+        reservedCoordinates.put(coordinate, previous);
         lastTimeStep = Math.max(coordinate.getTimeStep(), lastTimeStep);
     }
 
@@ -121,7 +126,7 @@ public class Reservation {
     /**
      * Reserve a destination, creating a reservation that holds
      * past the time step of the coordinate
-     * @param coordinate
+     * @param coordinate the destination to reserve
      */
     public void reserveDestination(Coordinate coordinate) {
         lastTimeStep = Math.max(coordinate.getTimeStep(), lastTimeStep);
@@ -151,7 +156,8 @@ public class Reservation {
         if (previous == null) return result;
         current.setTimeStep(current.getTimeStep() - 1);
         previous.setTimeStep(previous.getTimeStep() + 1);
-        if (reservedCoordinates.containsKey(previous)) {
+        if (reservedCoordinates.containsKey(previous)
+                && reservedCoordinates.get(previous) != null) {
             result = reservedCoordinates.get(previous).equals(current);
         }
         current.setTimeStep(current.getTimeStep() + 1);

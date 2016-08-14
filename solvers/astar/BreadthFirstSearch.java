@@ -1,6 +1,7 @@
 package solvers.astar;
 
 
+import constants.Keys;
 import solvers.states.SingleAgentState;
 import utilities.ProblemInstance;
 import utilities.StateClosedList;
@@ -21,7 +22,7 @@ public class BreadthFirstSearch extends GenericAStar {
      * Constructor that creates a breadth first search solver
      */
     public BreadthFirstSearch() {
-        super(new HashMap<>()); // init A*
+        super(new HashMap<>());
     }
 
     @Override

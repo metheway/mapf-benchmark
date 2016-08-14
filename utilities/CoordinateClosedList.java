@@ -14,6 +14,8 @@ import java.util.Map;
  */
 public class CoordinateClosedList implements IClosedList{
 
+    private static final int PERMANENT = -1; // denotes reserved locations regardless of time step
+
     private Map<Coordinate, Double> map;
     private Reservation reservation;
 
@@ -43,7 +45,7 @@ public class CoordinateClosedList implements IClosedList{
             }
         } else {
             Node location = singleAgentState.coordinate().getNode();
-            otherCoordinate = new Coordinate(-1, location);
+            otherCoordinate = new Coordinate(PERMANENT, location);
             if (!map.containsKey(otherCoordinate)) {
                 return false;
             }
@@ -56,10 +58,11 @@ public class CoordinateClosedList implements IClosedList{
 
     @Override
     public void add(State state) {
-        SingleAgentState singleAgentState = ((MultiAgentState) state).getSingleAgentStates().get(0);
+        SingleAgentState singleAgentState = state instanceof SingleAgentState ? (SingleAgentState) state :
+                ((MultiAgentState) state).getSingleAgentStates().get(0);
         Coordinate newCoordinate = singleAgentState.coordinate();
         if (singleAgentState.coordinate().getTimeStep() > reservation.getLastTimeStep()) {
-            newCoordinate = new Coordinate(-1, singleAgentState.coordinate().getNode());
+            newCoordinate = new Coordinate(PERMANENT, singleAgentState.coordinate().getNode());
         }
         map.put(newCoordinate, singleAgentState.gValue());
     }
