@@ -1,12 +1,9 @@
 package solvers.independence_detection;
 
 import solvers.ConstrainedSolver;
-import solvers.states.ODState;
+import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
-import utilities.Agent;
-import utilities.Path;
-import utilities.ProblemInstance;
-import utilities.Util;
+import utilities.*;
 
 import java.util.*;
 
@@ -43,14 +40,14 @@ public class IndependenceDetection extends ConstrainedSolver {
         //System.out.println("problems at start: " + problemList.size());
         while (index < pathList.size()) {
             System.out.println("checking path " + index + " for conflicts...");
-            int conflictIndex = conflict(index);
-            if (conflictIndex != -1) {
+            Conflict conflict = Util.conflict(index, 0, this.pathList);
+            if (conflict != null) {
                 int numProblemsBefore = problemList.size();
-                if (!resolveConflict(index, conflictIndex)) return false;
+                if (!resolveConflict(conflict.getGroup1(), conflict.getGroup2())) return false;
                 if (problemList.size() < numProblemsBefore) {
-                    if (conflictIndex < index) index--;
+                    if (conflict.getGroup2() < index) index--;
                 } else {
-                    index = Math.min(index, conflictIndex);
+                    index = Math.min(conflict.getGroup1(), conflict.getGroup2());
                 }
             } else {
                 index++;
@@ -58,58 +55,6 @@ public class IndependenceDetection extends ConstrainedSolver {
         }
 
         return true;
-    }
-
-    // find conflicts among paths with pathList.get(index)
-    // return index of conflicting path
-    private int conflict(int index) {
-        Path thisPath = pathList.get(index);
-        for (int i = 0; i < pathList.size(); i++) {
-            if (i != index) {
-                Path path = pathList.get(i);
-                //System.out.println("checking path " + i);
-                for (int t = 1; t < thisPath.size(); t++) {
-                    ODState odState = (ODState) thisPath.get(t);
-                    ODState compareWith;
-                    if (t < path.size()) compareWith = (ODState) path.get(t);
-                    else compareWith = (ODState) path.get(path.size() - 1);
-
-                    List<SingleAgentState> odStateSingle = odState.getSingleAgentStates();
-                    List<SingleAgentState> compareWithSingle = compareWith.getSingleAgentStates();
-                    HashSet<SingleAgentState> filter = new HashSet<>(odStateSingle);
-                    filter.retainAll(compareWithSingle);
-
-                    boolean filterEmpty = filter.isEmpty();
-                    boolean transpositionOccurred = transposition(index, odStateSingle, i, compareWithSingle, t);
-                    if (!filterEmpty || transpositionOccurred) {
-                        System.out.println("conflict found between path " + index + " and path " + i + " at time step " + t);
-                        System.out.println("conflict type: " + ((!filterEmpty) ? "collision" : "transposition"));
-                        return i;
-                    }
-                }
-            }
-        }
-        return -1;
-    }
-
-    private boolean transposition(int index, List<SingleAgentState> odStateSingle, int otherIndex, List<SingleAgentState> compareWithSingle, int timeStep) {
-        List<SingleAgentState> odStatePrevSingle = ((ODState)pathList.get(index).get(timeStep - 1)).getSingleAgentStates();
-        List<SingleAgentState> compareWithPrevSingle;
-        if (timeStep - 1 < pathList.get(otherIndex).size()) compareWithPrevSingle = ((ODState)pathList.get(otherIndex).get(timeStep - 1)).getSingleAgentStates();
-        else compareWithPrevSingle = ((ODState)pathList.get(otherIndex).get(pathList.get(otherIndex).size() - 1)).getSingleAgentStates();
-
-        int indexInOdStatePrev = 0;
-        for (SingleAgentState singleAgentState : odStatePrevSingle) {
-            int indexInCompareWith = compareWithSingle.indexOf(singleAgentState);
-            if (indexInCompareWith != -1) {
-                SingleAgentState comp = compareWithPrevSingle.get(indexInCompareWith);
-                if (odStateSingle.get(indexInOdStatePrev).equals(comp)) {
-                    return true;
-                }
-            }
-            indexInOdStatePrev++;
-        }
-        return false;
     }
 
     protected boolean resolveConflict(int index, int indexOfConflict) {

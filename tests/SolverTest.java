@@ -1,31 +1,26 @@
 package tests;
 
+import solvers.c_astar.CAStar;
+import solvers.cbs.ConflictBasedSearch;
 import solvers.astar.*;
 import solvers.independence_detection.EnhancedID;
 import solvers.independence_detection.IndependenceDetection;
-import solvers.states.ODState;
 import utilities.*;
-import visuals.MapPanel;
 
-import java.awt.Color;
-import java.awt.Graphics;
 import java.io.*;
 import java.util.*;
 
-import javax.swing.*;
-
 import constants.CostFunction;
-import solvers.c_astar.CAStar;
-import solvers.states.MultiAgentState;
-import solvers.states.SingleAgentState;
 
 public class SolverTest {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		//testSingleAgent();
         //testMultiAgent();
-        testIndependenceDetection();
+        //testIndependenceDetection();
         //testReservation();
+        testCBS();
+        //testConflict();
 	}
 
 	public static void testSingleAgent() throws FileNotFoundException {
@@ -78,10 +73,73 @@ public class SolverTest {
         Graph graph = new Graph(Connected.EIGHT, problemMap);
         ProblemInstance problemInstance = new ProblemInstance(graph, Collections.singletonList(new Agent(0, 1, 0)));
         MultiAgentAStar solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
-        solver.getReservation().reserveCoordinate(new Coordinate(1, graph.getNodes().get(1)));
+        solver.getReservation().reserveCoordinate(new Coordinate(1, graph.getNodes().get(1)), null);
         System.out.println("Last time step of reservation = " + solver.getReservation().getLastTimeStep());
         System.out.println(solver.solve(problemInstance));
         System.out.println(solver.getPath().cost());
+    }
+
+    public static void testCBS() throws FileNotFoundException {
+        ProblemMap problemMap = new ProblemMap(new File("MAPF/src/maps/arena.map"));
+        Graph graph = new Graph(Connected.EIGHT, problemMap);
+        ProblemInstance problemInstance = new ProblemInstance(graph, 30);
+        ConflictBasedSearch c = new ConflictBasedSearch();
+        IndependenceDetection e = new EnhancedID(new OperatorDecomposition());
+        long t = System.currentTimeMillis();
+        System.out.println(e.solve(problemInstance));
+        System.out.println((System.currentTimeMillis() - t)/1000.);
+        for (State s : e.getPath()) {
+            s.printIndices();
+        }
+        System.out.println();
+
+        t = System.currentTimeMillis();
+        System.out.println(c.solve(problemInstance));
+        System.out.println((System.currentTimeMillis() - t)/1000.);
+
+        System.out.println(e.getPath().cost() + " " + c.getPath().cost());
+    }
+
+    public static void testCAStar() throws FileNotFoundException {
+        CAStar solver = new CAStar();
+        ProblemMap problemMap = new ProblemMap(new File("MAPF/src/maps/test.map"));
+        Graph graph = new Graph(Connected.EIGHT, problemMap);
+        ProblemInstance problemInstance = new ProblemInstance(graph, new ArrayList<Agent>(
+                Arrays.asList(
+                        new Agent(0, 18, 0),
+                        new Agent(18, 0, 1)
+                )
+        ));
+        solver.solve(problemInstance);
+        System.out.println(solver.getPath().cost());
+        for (State s : solver.getPath()) {
+            s.printIndices();
+        }
+    }
+
+    public static void testConflict() throws FileNotFoundException {
+        SingleAgentAStar solver1 = new SingleAgentAStar();
+        SingleAgentAStar solver2 = new SingleAgentAStar();
+        SingleAgentAStar solver3 = new SingleAgentAStar();
+
+        ProblemMap problemMap = new ProblemMap(new File("MAPF/src/maps/test.map"));
+        Graph graph = new Graph(Connected.EIGHT, problemMap);
+
+        ProblemInstance problemInstance1 = new ProblemInstance(graph, Collections.singletonList(new Agent(0, 18, 0)));
+        ProblemInstance problemInstance2 = new ProblemInstance(graph, Collections.singletonList(new Agent(18, 0, 0)));
+        ProblemInstance problemInstance3 = new ProblemInstance(graph, Collections.singletonList(new Agent(6,  6, 0)));
+
+        solver1.solve(problemInstance1);
+        solver2.solve(problemInstance2);
+        solver3.solve(problemInstance3);
+
+        List<Path> solutions = new ArrayList<>(Arrays.asList(solver1.getPath(), solver2.getPath(), solver3.getPath()));
+
+        Conflict conflict1 = Util.conflict(0, 1, solutions);
+        System.out.println(conflict1);
+
+        Conflict conflict2 = Util.conflict(0, 2, solutions);
+        System.out.println(conflict2);
     }
 
 }

@@ -47,9 +47,10 @@ public class ProblemInstance {
 	}
 
     /**
-     *
-     * @param graph
-     * @param nAgents
+     * Constructor that creates a problem instance with the specified graph
+     * and nAgents randomly generated agents
+     * @param graph the graph
+     * @param nAgents number of agents
      */
 	public ProblemInstance(Graph graph, int nAgents) {
         this.graph = graph;

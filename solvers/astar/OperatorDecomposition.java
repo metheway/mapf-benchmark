@@ -1,6 +1,7 @@
 package solvers.astar;
 
 import constants.CostFunction;
+import constants.Keys;
 import solvers.states.ODState;
 import utilities.ProblemInstance;
 
@@ -23,7 +24,7 @@ public class OperatorDecomposition extends GenericAStar {
      * Constructor that takes parameters (unused at the moment)
      * @param params a map containing parameters to alter solver behavior
      */
-    public OperatorDecomposition(HashMap<String, ?> params) {
+    public OperatorDecomposition(HashMap<Keys, Object> params) {
         super(params);
     }
 

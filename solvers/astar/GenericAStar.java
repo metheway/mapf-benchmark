@@ -2,7 +2,11 @@ package solvers.astar;
 
 import java.util.*;
 
+import constants.Keys;
 import solvers.ConstrainedSolver;
+import solvers.Reservation;
+import solvers.states.MultiAgentState;
+import solvers.states.SingleAgentState;
 import utilities.*;
 
 /**
@@ -10,7 +14,7 @@ import utilities.*;
  */
 public abstract class GenericAStar extends ConstrainedSolver {
 
-    private Map<String, ?> params;
+    private Map<Keys, Object> params;
     protected PriorityQueue<State> openList;
     protected IClosedList closedList;
     protected State goal;
@@ -25,7 +29,7 @@ public abstract class GenericAStar extends ConstrainedSolver {
      * a map of parameters
      * @param params parameters to alter the behavior of an A* solver
      */
-    public GenericAStar(Map<String, ?> params) {
+    public GenericAStar(Map<Keys, Object> params) {
         this.params = params;
         openList = new PriorityQueue<>();
         closedList = new StateClosedList();
@@ -55,17 +59,23 @@ public abstract class GenericAStar extends ConstrainedSolver {
                 return true;
             }
             List<State> neighbors = current.expand(problem);
-
-            for (State s : neighbors) {
-                handleNeighbor(s);
-            }
+            neighbors.forEach(this::handleNeighbor);
         }
         return false;
     }
 
     protected void handleNeighbor(State state) {
         if (getReservation().isValid(state)) {
+
+            if (state instanceof MultiAgentState) {
+                SingleAgentState s = ((MultiAgentState) state).getSingleAgentStates().get(0);
+
+                if (getReservation().reservedCoordinates.containsKey(s.coordinate())) {
+                    System.out.println("!!!");
+                }
+            }
             if (!closedList.contains(state)) {
+
                 setStateHeuristic(state);
                 openList.add(state);
                 closedList.add(state);
@@ -90,6 +100,9 @@ public abstract class GenericAStar extends ConstrainedSolver {
     	return new Path(pre);
     }
 
+    public void addParam(Keys param, Object value) {
+        params.put(param, value);
+    }
 
     protected void setStateHeuristic(State s) {
         s.setHeuristic(heuristic);
@@ -102,9 +115,13 @@ public abstract class GenericAStar extends ConstrainedSolver {
     	goal = null;
     	openList.clear();
         closedList = new StateClosedList();
-        heuristic = new TDHeuristic(problem);
+        if (params.get(Keys.PREPROCESS) == null
+                || (Boolean) params.get(Keys.PREPROCESS))
+            heuristic = new TDHeuristic(problem);
+        if (params.get(Keys.RESERVATIONS) != null)
+            setReservation((Reservation) params.get(Keys.RESERVATIONS));
     }
-    
+
     protected boolean isGoal(ProblemInstance p, State s) {
     	return s.goalTest(p);
     }

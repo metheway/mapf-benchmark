@@ -41,8 +41,8 @@ public class MultiAgentState extends State {
     /**
      * Constructor that creates a root state from the specified problem instance
      * using the given cost function
-     * @param costFunction
-     * @param problemInstance
+     * @param costFunction the cost function to minimize
+     * @param problemInstance the problem instance
      */
     public MultiAgentState(CostFunction costFunction, ProblemInstance problemInstance) {
         super(null);
