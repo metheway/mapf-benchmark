@@ -1,3 +1,4 @@
 *.class
 .idea
 MAPF.iml
+.DS_STORE
