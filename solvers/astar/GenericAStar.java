@@ -66,16 +66,7 @@ public abstract class GenericAStar extends ConstrainedSolver {
 
     protected void handleNeighbor(State state) {
         if (getReservation().isValid(state)) {
-
-            if (state instanceof MultiAgentState) {
-                SingleAgentState s = ((MultiAgentState) state).getSingleAgentStates().get(0);
-
-                if (getReservation().reservedCoordinates.containsKey(s.coordinate())) {
-                    System.out.println("!!!");
-                }
-            }
             if (!closedList.contains(state)) {
-
                 setStateHeuristic(state);
                 openList.add(state);
                 closedList.add(state);

@@ -2,14 +2,14 @@ package solvers.astar;
 
 import java.util.List;
 
+import solvers.ConflictAvoidanceTable;
 import utilities.ProblemInstance;
 
 public abstract class State implements Comparable<State> {
 
-    // TODO
-
     protected double gValue;
     protected double hValue;
+    protected int conflictViolations;
     private State backPointer;
 
     /**
@@ -24,7 +24,6 @@ public abstract class State implements Comparable<State> {
     @Override
     /**
      * Compare states by their gValues and hValues.
-     * 
      * @param other The State to be compared with
      */
     public int compareTo(State other) {
@@ -32,6 +31,9 @@ public abstract class State implements Comparable<State> {
             throw new IllegalArgumentException("Cannot compare to null state.");
 
         double res = gValue - other.gValue + hValue - other.hValue;
+        if (res == 0) {
+            res = conflictViolations - other.conflictViolations;
+        }
     	return (int) Math.signum(res);
     }
 
@@ -51,6 +53,12 @@ public abstract class State implements Comparable<State> {
     public double hValue() {
         return hValue;
     }
+
+    /**
+     * Update the number of CAT violations this state
+     * has incurred.
+     */
+    public abstract void updateCATViolations(ConflictAvoidanceTable cat);
 
     /**
      * Return whether the state is the root state
