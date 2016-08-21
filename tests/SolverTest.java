@@ -1,5 +1,6 @@
 package tests;
 
+import solvers.ConflictAvoidanceTable;
 import solvers.astar.*;
 import solvers.independence_detection.EnhancedID;
 import solvers.independence_detection.IndependenceDetection;
@@ -24,8 +25,9 @@ public class SolverTest {
 	public static void main(String[] args) throws FileNotFoundException {
 		//testSingleAgent();
         //testMultiAgent();
-        testIndependenceDetection();
-        testReservation();
+        //testIndependenceDetection();
+        //testReservation();
+	    testCAT();
 	}
 
 	public static void testSingleAgent() throws FileNotFoundException {
@@ -78,10 +80,29 @@ public class SolverTest {
         Graph graph = new Graph(Connected.EIGHT, problemMap);
         ProblemInstance problemInstance = new ProblemInstance(graph, Collections.singletonList(new Agent(0, 1, 0)));
         MultiAgentAStar solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
-        solver.getReservation().reserveCoordinate(new Coordinate(1, graph.getNodes().get(1)));
+        solver.getReservation().reserveCoordinate(null, new Coordinate(1, graph.getNodes().get(1)));
         System.out.println("Last time step of reservation = " + solver.getReservation().getLastTimeStep());
         System.out.println(solver.solve(problemInstance));
         System.out.println(solver.getPath().cost());
+    }
+
+    public static void testCAT() throws FileNotFoundException {
+        ConflictAvoidanceTable cat = new ConflictAvoidanceTable();
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/test.map"));
+        Graph graph = new Graph(Connected.EIGHT, problemMap);
+        Agent agent = new Agent(0, 2, 0);
+        Agent other = new Agent(0, 2, 0);
+        ProblemInstance problemInstance = new ProblemInstance(graph, Collections.singletonList(agent));
+        SingleAgentAStar solver = new SingleAgentAStar();
+        solver.solve(problemInstance);
+        Path path = solver.getPath();
+        cat.addPath(path, 0);
+
+        problemInstance = new ProblemInstance(graph, Collections.singletonList(other));
+        solver.solve(problemInstance);
+        path = solver.getPath();
+        cat.addPath(path, 1);
+        System.out.println(cat);
     }
 
 }

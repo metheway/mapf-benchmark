@@ -7,9 +7,7 @@ import utilities.Coordinate;
 import utilities.Node;
 import utilities.Path;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -87,7 +85,7 @@ public class Reservation {
                     // agent destination?
                     || blockedByStationaryAgent(singleAgentState.coordinate())
                     // does it cause a transposition?
-                    || transpositionOccurred(singleAgentState.isRoot() ? null :
+                    || transpositionOccurred(reservedCoordinates, singleAgentState.isRoot() ? null :
                                                                         ((SingleAgentState) singleAgentState.predecessor()).coordinate(),
                                                 singleAgentState.coordinate()));
         } else if (state instanceof MultiAgentState){
@@ -137,11 +135,11 @@ public class Reservation {
      * Free a destination reservation
      * @param coordinate the coordinate to free
      */
-    public void freeDestination(Coordinate coordinate) {
+    private void freeDestination(Coordinate coordinate) {
         agentDestinations.remove(coordinate.getNode());
     }
 
-    private boolean coordinateReserved(Coordinate coordinate) {
+    protected boolean coordinateReserved(Coordinate coordinate) {
         return reservedCoordinates.containsKey(coordinate);
     }
 
@@ -150,8 +148,7 @@ public class Reservation {
                 && agentDestinations.get(coordinate.getNode()) <= coordinate.getTimeStep();
     }
 
-
-    private boolean transpositionOccurred(Coordinate previous, Coordinate current) {
+    private boolean transpositionOccurred(Map<Coordinate, Coordinate> reservedCoordinates, Coordinate previous, Coordinate current) {
         boolean result = false;
         if (previous == null) return result;
         current.setTimeStep(current.getTimeStep() - 1);

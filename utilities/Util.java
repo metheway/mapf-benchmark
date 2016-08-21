@@ -6,10 +6,7 @@ import solvers.astar.State;
 import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Methods that are used often but disparately
@@ -111,6 +108,34 @@ public class Util {
             indexInMaStatePrev++;
         }
         return false;
+    }
+
+    public static int indexOfEarliest(List<Coordinate> list) {
+        int index = 0;
+        int currentIndex = 1;
+        int min = list.get(0).getTimeStep();
+        for (Coordinate coordinate : list.subList(1, list.size())) {
+            if (coordinate.getTimeStep() < min) {
+                min = coordinate.getTimeStep();
+                index = currentIndex;
+            }
+            ++currentIndex;
+        }
+        return index;
+    }
+
+    public static <E extends Comparable<E>> int argmin(List<E> list) {
+        E min = list.get(0);
+        int result = 0;
+        int currentIndex = 1;
+        for (E elem : list.subList(1, list.size())) {
+            if (elem.compareTo(min) < 0) {
+                min = elem;
+                result = currentIndex;
+            }
+            ++currentIndex;
+        }
+        return result;
     }
 
 }

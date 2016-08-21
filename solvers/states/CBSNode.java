@@ -1,6 +1,7 @@
 package solvers.states;
 
 import constants.Keys;
+import solvers.ConflictAvoidanceTable;
 import solvers.ConstrainedSolver;
 import solvers.astar.GenericAStar;
 import solvers.astar.State;
@@ -72,6 +73,10 @@ public class CBSNode extends State {
         SingleAgentState previousState = ((MultiAgentState) path.get(adjustedTime)).getSingleAgentStates().get(0);
         Coordinate fromState = new Coordinate(conflict.getTimeStep() - 1, previousState.coordinate().getNode());
         return fromState;
+    }
+
+    public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
+
     }
 
     public void replan(GenericAStar solver, ProblemInstance problemInstance) {

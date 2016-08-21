@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import constants.Positions;
+import solvers.ConflictAvoidanceTable;
 import solvers.astar.TDHeuristic;
 import utilities.Agent;
 import utilities.Node;
@@ -58,13 +59,13 @@ public class SingleAgentState extends State {
         calculateCost(problem);
     }
 
-	public SingleAgentState(int agentId, ProblemInstance problem) {
-		super(null);
-		Agent a = problem.getAgents().get(agentId);
-		Node currentNode = problem.getGraph().getNodes().get(a.position());
-		this.agentId = agentId;
-		coord = new Coordinate(0, currentNode);
-	}
+    public SingleAgentState(int agentId, ProblemInstance problem) {
+        super(null);
+        Agent a = problem.getAgents().get(agentId);
+        Node currentNode = problem.getGraph().getNodes().get(a.position());
+        this.agentId = agentId;
+        coord = new Coordinate(0, currentNode);
+    }
 
     /**
      * expand() method specified by abstract State
@@ -77,14 +78,18 @@ public class SingleAgentState extends State {
 
         Node[] neighborNodes = coord.getNode().getNeighbors();
         for (int i = 0; i < neighborNodes.length; i++) {
-			Node neighbor = neighborNodes[i];
-			if (neighbor != null && neighbor.isReachable(i)){
+            Node neighbor = neighborNodes[i];
+            if (neighbor != null && neighbor.isReachable(i)){
                 State nextState = new SingleAgentState(agentId, neighbor, this, problem);
                 neighbors.add(nextState);
-			}
+            }
         }
-		
+
         return neighbors;
+    }
+
+    public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
+
     }
 
     /**
@@ -112,88 +117,88 @@ public class SingleAgentState extends State {
      * @return  the cost of moving to this location from the current state
      */
     private double costOfNeighbor(int position) {
-		double cost = Costs.ADJACENT;
-		Node currentNode = coord.getNode();
-		Node nextNode = coord.getNode().getNeighbors()[position];
-		if (this.equals(predecessor())) return Costs.STAY;
+        double cost = Costs.ADJACENT;
+        Node currentNode = coord.getNode();
+        Node nextNode = coord.getNode().getNeighbors()[position];
+        if (this.equals(predecessor())) return Costs.STAY;
 
-		if (Positions.isDiagonal(position)) cost = Costs.DIAGONAL;
-		if (currentNode.getType() == Terrain.WATER || nextNode.getType() == Terrain.WATER) cost *= Costs.WATER_PENALTY;
-		else if (currentNode.getType() == Terrain.TREE || nextNode.getType() == Terrain.TREE) cost *= Costs.TREE_PENALTY;
+        if (Positions.isDiagonal(position)) cost = Costs.DIAGONAL;
+        if (currentNode.getType() == Terrain.WATER || nextNode.getType() == Terrain.WATER) cost *= Costs.WATER_PENALTY;
+        else if (currentNode.getType() == Terrain.TREE || nextNode.getType() == Terrain.TREE) cost *= Costs.TREE_PENALTY;
 
-		return cost;
-	}
+        return cost;
+    }
 
-	@Override
-	public int timeStep() {
-		return coordinate().getTimeStep();
-	}
+    @Override
+    public int timeStep() {
+        return coordinate().getTimeStep();
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((coord.getNode() == null) ? 0 : coord.getNode().hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((coord.getNode() == null) ? 0 : coord.getNode().hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		SingleAgentState other = (SingleAgentState) obj;
-		if (coord.getNode() == null) {
-			if (other.coord.getNode() != null)
-				return false;
-		} else if (!(coord.getNode().equals(other.coord.getNode())))
-			return false;
-		
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        SingleAgentState other = (SingleAgentState) obj;
+        if (coord.getNode() == null) {
+            if (other.coord.getNode() != null)
+                return false;
+        } else if (!(coord.getNode().equals(other.coord.getNode())))
+            return false;
 
-	@Override
-	protected void calculateCost(ProblemInstance problem) {
-		if (isRoot()) {
-			return;
-		}
-		
-		Node[] neighbors = coord.getNode().getNeighbors();
-		SingleAgentState pred = (SingleAgentState) predecessor();
+        return true;
+    }
 
-		gValue = pred.gValue();
-		if (this.equals(pred)) {
+    @Override
+    protected void calculateCost(ProblemInstance problem) {
+        if (isRoot()) {
+            return;
+        }
+
+        Node[] neighbors = coord.getNode().getNeighbors();
+        SingleAgentState pred = (SingleAgentState) predecessor();
+
+        gValue = pred.gValue();
+        if (this.equals(pred)) {
             if (!goalTest(problem)) gValue += Costs.STAY;
-			return;
-		}
-		
-		Node predNode = pred.coord.getNode();
-		for (int i = 0; i < neighbors.length; i++) {
-			if (neighbors[i] != null)
-				if (neighbors[i].equals(predNode)) {
-					gValue += costOfNeighbor(i);
-					return;
-				}
-		}
-	}
+            return;
+        }
 
-	public int getAgentId() {
-		return agentId;
-	}
+        Node predNode = pred.coord.getNode();
+        for (int i = 0; i < neighbors.length; i++) {
+            if (neighbors[i] != null)
+                if (neighbors[i].equals(predNode)) {
+                    gValue += costOfNeighbor(i);
+                    return;
+                }
+        }
+    }
 
-	public void setHeuristic(TDHeuristic heuristic) {
-		hValue = heuristic.trueDistance(coord.getNode(), agentId);
-	}
+    public int getAgentId() {
+        return agentId;
+    }
+
+    public void setHeuristic(TDHeuristic heuristic) {
+        hValue = heuristic.trueDistance(coord.getNode(), agentId);
+    }
 
 
-	@Override
-	public boolean goalTest(ProblemInstance problem) {
-		// backpointer irrelevant since only agentId and node are
-		// compared by equals()
+    @Override
+    public boolean goalTest(ProblemInstance problem) {
+        // backpointer irrelevant since only agentId and node are
+        // compared by equals()
         return coordinate().getNode() == problem.getGoal().get(agentId);
-	}
+    }
 
 }

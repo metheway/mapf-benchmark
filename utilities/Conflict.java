@@ -6,6 +6,8 @@ package utilities;
  */
 public class Conflict {
 
+    public static final int EMPTY = -1;
+
     private int timeStep;
     private int group1;
     private int group2;
