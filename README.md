@@ -1,7 +1,7 @@
 # mapf-benchmark
 A benchmarking tool for researchers working on multi-agent path finding.
 
-Currently implemented algorithms:
+### Currently implemented algorithms:
   * [Conflict-based search](https://www.aaai.org/ocs/index.php/AAAI/AAAI12/paper/view/5062/) (Sharon, et al.)
   * [Independence Detection](http://www.aaai.org/ocs/index.php/AAAI/AAAI10/paper/view/1926) (Standley)
   * Cooperative A*
