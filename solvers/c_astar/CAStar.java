@@ -20,42 +20,42 @@ import java.util.HashMap;
  * Class implementing the Cooperative A* algorithm
  */
 public class CAStar extends ConstrainedSolver {
-	
-	private Reservation reservation;
-	private HashMap<Keys, Object> params;
-	private List<Path> paths;
-	private ProblemInstance problemInstance;
+    
+    private Reservation reservation;
+    private HashMap<Keys, Object> params;
+    private List<Path> paths;
+    private ProblemInstance problemInstance;
 
     @Override
-	public boolean solve(ProblemInstance problem) {
-		this.problemInstance = problem;
-		init();
-		List<Agent> agents = problem.getAgents();
-		SingleAgentAStar solver = new SingleAgentAStar(params);
-		for (Agent a : agents) {
+    public boolean solve(ProblemInstance problem) {
+        this.problemInstance = problem;
+        init();
+        List<Agent> agents = problem.getAgents();
+        SingleAgentAStar solver = new SingleAgentAStar(params);
+        for (Agent a : agents) {
             Agent singleton = new Agent(a.position(), a.goal(), 0);
-			ProblemInstance agentProblem = new ProblemInstance(problemInstance.getGraph(), Collections.singletonList(singleton));
-			if (!solver.solve(agentProblem)) return false;
+            ProblemInstance agentProblem = new ProblemInstance(problemInstance.getGraph(), Collections.singletonList(singleton));
+            if (!solver.solve(agentProblem)) return false;
             Path solverPath = solver.getPath();
             reservation.reservePath(solverPath);
-			paths.add(solverPath);
+            paths.add(solverPath);
             for (State s : solverPath) {
                 s.printIndices();
             }
-		}
-		return true;
-	}
+        }
+        return true;
+    }
 
-	private void init() {
-		params = new HashMap<>();
-		reservation = new Reservation();
-		paths = new ArrayList<>();
-		params.put(Keys.RESERVATIONS, reservation);
-	}
+    private void init() {
+        params = new HashMap<>();
+        reservation = new Reservation();
+        paths = new ArrayList<>();
+        params.put(Keys.RESERVATIONS, reservation);
+    }
 
-	@Override
-	public Path getPath() {
-		return Util.mergePaths(paths, problemInstance);
+    @Override
+    public Path getPath() {
+        return Util.mergePaths(paths, problemInstance);
     }
 
 }
