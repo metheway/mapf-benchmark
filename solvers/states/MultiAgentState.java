@@ -64,7 +64,11 @@ public class MultiAgentState extends State {
     }
 
     public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
-
+        this.conflictViolations = 0;
+        for (SingleAgentState singleAgentState : getSingleAgentStates()) {
+            singleAgentState.updateCATViolations(conflictAvoidanceTable);
+            this.conflictViolations += singleAgentState.numCATViolations();
+        }
     }
 
     private List<List<SingleAgentState>> generateNeighbors(ProblemInstance problem) {

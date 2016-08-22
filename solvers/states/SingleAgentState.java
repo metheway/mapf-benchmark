@@ -57,6 +57,7 @@ public class SingleAgentState extends State {
             coord = new Coordinate(0, currentNode);
         }
         calculateCost(problem);
+        this.conflictViolations = backPointer.conflictViolations;
     }
 
     public SingleAgentState(int agentId, ProblemInstance problem) {
@@ -89,7 +90,9 @@ public class SingleAgentState extends State {
     }
 
     public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
-
+        if (conflictAvoidanceTable.violation(this) != ConflictAvoidanceTable.NO_CONFLICT) {
+            ++this.conflictViolations;
+        }
     }
 
     /**

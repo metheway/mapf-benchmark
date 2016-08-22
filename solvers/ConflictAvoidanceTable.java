@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class ConflictAvoidanceTable {
 
-    private static final int NO_CONFLICT = -1;
+    public static final int NO_CONFLICT = -1;
 
     // coordinate => prev(s)
     private Map<Coordinate, List<Coordinate>> coordinateTable;
@@ -34,7 +34,6 @@ public class ConflictAvoidanceTable {
     }
 
     public int violation(SingleAgentState state) {
-        SingleAgentState singleAgentState = state;
         Coordinate thisCoordinate = state.coordinate();
         Coordinate prevCoordinate = state.isRoot() ?
                 null : ((SingleAgentState) state.predecessor()).coordinate();
@@ -127,6 +126,9 @@ public class ConflictAvoidanceTable {
     }
 
     public void addCoordinate(Coordinate coordinate, Coordinate prev, int group) {
+        Conflict updatedConflict = earliestConflictWhileAdding;
+
+        // collision
         if (!coordinateTable.containsKey(coordinate)) {
             ArrayList<Coordinate> prevList = new ArrayList<>();
             prevList.add(prev);
@@ -141,13 +143,42 @@ public class ConflictAvoidanceTable {
             Conflict newConflict = new Conflict(coordinate.getTimeStep(), group, otherGroup);
             boolean earlier = earliestConflictWhileAdding == null
                             || newConflict.getTimeStep() < earliestConflictWhileAdding.getTimeStep();
-            earliestConflictWhileAdding = earlier ? newConflict : earliestConflictWhileAdding;
+            updatedConflict = earlier ? newConflict : earliestConflictWhileAdding;
         }
+
+        // transposition
+        if (coordinateTable.containsKey(coordinate)
+                && updatedConflict == earliestConflictWhileAdding) {
+            coordinate.setTimeStep(coordinate.getTimeStep() - 1);
+            prev.setTimeStep(prev.getTimeStep() + 1);
+
+            if (coordinateTable.get(prev) != null) {
+                List<Coordinate> beforeCoords = coordinateTable.get(prev);
+                for (int i = 0; i < beforeCoords.size() && updatedConflict == earliestConflictWhileAdding; i++) {
+                    Coordinate before = beforeCoords.get(i);
+                    if (before.equals(coordinate)) {
+                        updatedConflict = new Conflict(coordinate.getTimeStep() + 1, i, group);
+                    }
+                }
+            }
+
+            coordinate.setTimeStep(coordinate.getTimeStep() + 1);
+            prev.setTimeStep(prev.getTimeStep() - 1);
+        }
+
+        earliestConflictWhileAdding = updatedConflict;
     }
 
     public void addDestination(Coordinate coordinate, int group) {
         agentDestinations.put(coordinate.getNode(),
                                 new int[] {coordinate.getTimeStep(), group});
+    }
+
+    public void clear() {
+        coordinateTable = new HashMap<>();
+        groupOccupantTable = new HashMap<>();
+        agentDestinations = new HashMap<>();
+        earliestConflictWhileAdding = null;
     }
 
     public String toString() {

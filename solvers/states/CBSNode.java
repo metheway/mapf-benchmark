@@ -82,6 +82,7 @@ public class CBSNode extends State {
     public void replan(GenericAStar solver, ProblemInstance problemInstance) {
         populateConstraints();
         solver.getReservation().clear();
+
         for (Coordinate coordinate : constraints.keySet()) {
             solver.getReservation().reserveCoordinate(
                     coordinate, constraints.get(coordinate)

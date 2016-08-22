@@ -58,7 +58,15 @@ public abstract class State implements Comparable<State> {
      * Update the number of CAT violations this state
      * has incurred.
      */
-    public abstract void updateCATViolations(ConflictAvoidanceTable cat);
+    protected abstract void updateCATViolations(ConflictAvoidanceTable cat);
+
+    /**
+     * Returns the number of conflict violations this state has incurred
+     * @return the number of conflict violations
+     */
+    public int numCATViolations() {
+        return conflictViolations;
+    }
 
     /**
      * Return whether the state is the root state
