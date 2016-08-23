@@ -2,6 +2,7 @@ package tests;
 
 import solvers.ConflictAvoidanceTable;
 import solvers.astar.*;
+import solvers.cbs.ConflictBasedSearch;
 import solvers.independence_detection.EnhancedID;
 import solvers.independence_detection.IndependenceDetection;
 import solvers.states.ODState;
@@ -27,7 +28,7 @@ public class SolverTest {
         //testMultiAgent();
         //testIndependenceDetection();
         //testReservation();
-	    testCAT();
+	    testCBS();
 	}
 
 	public static void testSingleAgent() throws FileNotFoundException {
@@ -103,6 +104,22 @@ public class SolverTest {
         path = solver.getPath();
         cat.addPath(path, 1);
         System.out.println(cat);
+    }
+
+    public static void testCBS() throws FileNotFoundException {
+        ConflictBasedSearch cbs = new ConflictBasedSearch();
+        EnhancedID id = new EnhancedID(new OperatorDecomposition());
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/arena.map"));
+        Graph graph = new Graph(Connected.EIGHT, problemMap);
+        ProblemInstance problemInstance = new ProblemInstance(graph, 25);
+        long t = System.currentTimeMillis();
+        System.out.println(cbs.solve(problemInstance));
+        System.out.println(System.currentTimeMillis() - t);
+        System.out.println("CBS: " + cbs.getPath().cost());
+        t = System.currentTimeMillis();
+        System.out.println(id.solve(problemInstance));
+        System.out.println(System.currentTimeMillis() - t);
+        System.out.println("ID: " + id.getPath().cost());
     }
 
 }

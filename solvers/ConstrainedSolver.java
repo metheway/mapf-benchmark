@@ -7,6 +7,7 @@ public abstract class ConstrainedSolver implements Solver {
 
     public ConstrainedSolver() {
         reservation = new Reservation();
+        conflictAvoidanceTable = new ConflictAvoidanceTable();
     }
 
     public Reservation getReservation() {

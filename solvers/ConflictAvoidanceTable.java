@@ -59,7 +59,7 @@ public class ConflictAvoidanceTable {
 
     private int findTransposition(Coordinate previous, Coordinate coordinate) {
         int conflictingGroup = NO_CONFLICT;
-        if (!(previous == null)) {
+        if (!(previous == null || coordinateTable.get(previous) == null)) {
             coordinate.setTimeStep(coordinate.getTimeStep() - 1);
             previous.setTimeStep(previous.getTimeStep() + 1);
             int index = coordinateTable.get(previous).indexOf(coordinate);
@@ -73,7 +73,7 @@ public class ConflictAvoidanceTable {
     }
 
     private int coordinateConflict(Coordinate coordinate) {
-        return groupOccupantTable.get(coordinate).isEmpty() ?
+        return groupOccupantTable.get(coordinate) == null ?
                 NO_CONFLICT : groupOccupantTable.get(coordinate).get(0);
     }
 
@@ -106,14 +106,16 @@ public class ConflictAvoidanceTable {
     public Conflict simulatePath(Path path, int group) {
         Conflict result = earliestConflictWhileAdding;
 
-        final int TIME_LIMIT = earliestConflictWhileAdding != null ?
+        int endTime = earliestConflictWhileAdding != null ?
                 earliestConflictWhileAdding.getTimeStep() : path.size();
 
+        final int TIME_LIMIT = Math.min(endTime, path.size());
         for (int time = 0; time < TIME_LIMIT && result == earliestConflictWhileAdding; time++) {
             MultiAgentState multiAgentState = (MultiAgentState) path.get(time);
             int violation = violation(multiAgentState);
             if (violation != NO_CONFLICT) {
                 result = new Conflict(time, group, violation);
+                System.out.println(result);
             }
         }
         return result;
@@ -148,7 +150,8 @@ public class ConflictAvoidanceTable {
 
         // transposition
         if (coordinateTable.containsKey(coordinate)
-                && updatedConflict == earliestConflictWhileAdding) {
+                && updatedConflict == earliestConflictWhileAdding
+                && prev != null) {
             coordinate.setTimeStep(coordinate.getTimeStep() - 1);
             prev.setTimeStep(prev.getTimeStep() + 1);
 
@@ -165,8 +168,12 @@ public class ConflictAvoidanceTable {
             coordinate.setTimeStep(coordinate.getTimeStep() + 1);
             prev.setTimeStep(prev.getTimeStep() - 1);
         }
-
-        earliestConflictWhileAdding = updatedConflict;
+        if (earliestConflictWhileAdding != null
+                && updatedConflict != earliestConflictWhileAdding) {
+            if (updatedConflict.getTimeStep() < earliestConflictWhileAdding.getTimeStep()) {
+                earliestConflictWhileAdding = updatedConflict;
+            }
+        }
     }
 
     public void addDestination(Coordinate coordinate, int group) {

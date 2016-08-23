@@ -76,17 +76,25 @@ public class CBSNode extends State {
     }
 
     public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
-
+        throw new NoSuchMethodError("CAT violations not recorded in CBSNode");
     }
 
     public void replan(GenericAStar solver, ProblemInstance problemInstance) {
         populateConstraints();
         solver.getReservation().clear();
+        solver.getConflictAvoidanceTable().clear();
 
         for (Coordinate coordinate : constraints.keySet()) {
             solver.getReservation().reserveCoordinate(
                     coordinate, constraints.get(coordinate)
             );
+        }
+
+        for (int group = 0; group < solutions.size(); group++) {
+            if (group != constraint.constrainedAgent()) {
+                Path otherPath = solutions.get(group);
+                solver.getConflictAvoidanceTable().addPath(otherPath, group);
+            }
         }
         //System.out.println(solver.getReservation().reservedCoordinates);
         //System.out.println("constraints populated.");
@@ -97,6 +105,10 @@ public class CBSNode extends State {
         calculateCost(IRRELEVANT);
         //System.out.println("cost computed as: " + gValue);
         constraints.clear();
+
+        Path newPath = solutions.get(constraint.constrainedAgent());
+        conflict = solver.getConflictAvoidanceTable().simulatePath(newPath, constraint.constrainedAgent());
+        //System.out.println(conflict);
     }
 
     private void populateConstraints() {
@@ -164,7 +176,8 @@ public class CBSNode extends State {
 
     @Override
     public boolean goalTest(ProblemInstance problemInstance) {
-        findConflict();
+        if (isRoot()) findConflict();
+        //System.out.println(conflict);
         return conflict == null;
     }
 
