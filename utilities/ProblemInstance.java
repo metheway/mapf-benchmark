@@ -140,7 +140,7 @@ public class ProblemInstance {
      */
 	public void serialize(String path, String fileName) {
 		try {
-			FileOutputStream fileOut = new FileOutputStream(path + fileName + ".bin");
+			FileOutputStream fileOut = new FileOutputStream(path + fileName + ".prob");
 			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
             objectOut.writeObject(graph.getMapTitle());
 			objectOut.writeObject(agents.size());

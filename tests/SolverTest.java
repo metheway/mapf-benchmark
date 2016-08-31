@@ -111,15 +111,28 @@ public class SolverTest {
         EnhancedID id = new EnhancedID(new OperatorDecomposition());
         ProblemMap problemMap = new ProblemMap(new File("src/maps/arena.map"));
         Graph graph = new Graph(Connected.EIGHT, problemMap);
-        ProblemInstance problemInstance = new ProblemInstance(graph, 25);
-        long t = System.currentTimeMillis();
-        System.out.println(cbs.solve(problemInstance));
-        System.out.println(System.currentTimeMillis() - t);
-        System.out.println("CBS: " + cbs.getPath().cost());
-        t = System.currentTimeMillis();
-        System.out.println(id.solve(problemInstance));
-        System.out.println(System.currentTimeMillis() - t);
-        System.out.println("ID: " + id.getPath().cost());
+
+        for (int i = 0; i < 1; i++) {
+            ProblemInstance problemInstance = new ProblemInstance(graph, 50);
+            long t = System.currentTimeMillis();
+            cbs.solve(problemInstance);
+            System.out.println(System.currentTimeMillis() - t);
+            System.out.println("CBS: " + cbs.getPath().cost());
+            //System.out.println(cbs.getPath());
+            for (State s : cbs.getPath()) {
+                s.printIndices();
+            }
+            System.out.println();
+            t = System.currentTimeMillis();
+            id.solve(problemInstance);
+            System.out.println(System.currentTimeMillis() - t);
+            System.out.println("ID: " + id.getPath().cost());
+            for (State s : id.getPath()) {
+                s.printIndices();
+            }
+            System.out.println();
+            //System.out.println(id.getPath());
+        }
     }
 
 }

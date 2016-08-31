@@ -33,4 +33,8 @@ public class OperatorDecomposition extends GenericAStar {
         return new ODState(CostFunction.SUM_OF_COSTS, problemInstance);
     }
 
+    public String toString() {
+        return "Operator Decomposition";
+    }
+
 }

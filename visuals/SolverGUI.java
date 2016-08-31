@@ -19,9 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by maxgray on 4/16/16.
- */
+
 public class SolverGUI {
     private JList chooseFrom;
     private JList chosen;
@@ -37,6 +35,7 @@ public class SolverGUI {
     private JRadioButton eightConnectedRadioButton;
 
     public SolverGUI() {
+        populateList(chooseFrom);
         fourConnectedRadioButton.setSelected(true);
         chooseButton.addMouseListener(new MouseAdapter() {
             @Override
@@ -57,6 +56,7 @@ public class SolverGUI {
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 final JFileChooser fc = new JFileChooser();
+                fc.setCurrentDirectory(new File("src/problem_instances"));
                 fc.showOpenDialog(panel);
                 File selectedFile = fc.getSelectedFile();
                 System.out.print(selectedFile.getAbsolutePath());
@@ -98,6 +98,7 @@ public class SolverGUI {
                 };
                 if (path.length() != 0) {
                     final JFileChooser fc = new JFileChooser();
+                    fc.setCurrentDirectory(new File("src/maps"));
                     fc.showOpenDialog(panel);
                     File selectedFile = fc.getSelectedFile();
                     Connected c = fourConnectedRadioButton.isSelected() ? Connected.FOUR : Connected.EIGHT;
@@ -115,6 +116,15 @@ public class SolverGUI {
                                 options,
                                 null) == 0;
                         System.out.println(toLoad);
+                        List<String> solversChosen = new ArrayList<>();
+                        for (Object obj : ((DefaultListModel) chosen.getModel()).toArray()) {
+                            solversChosen.add((String) obj);
+                        }
+
+                        for (String solverName : solversChosen) {
+                            System.out.println(GlobalSolvers.solverMap.get(solverName).solve(pi));
+                        }
+
                     } catch (FileNotFoundException x) {
                         x.printStackTrace();
                     }
@@ -135,6 +145,16 @@ public class SolverGUI {
 
 
     // read the problem instance
+
+    private void populateList(JList list) {
+        List<Object> newList = new ArrayList<>();
+        DefaultListModel<Object> newListModel = new DefaultListModel<>();
+        for (String name : GlobalSolvers.solverMap.keySet()) {
+            newList.add(name);
+        }
+        updateModel(newListModel, newList);
+        list.setModel(newListModel);
+    }
 
     private void exchange(JList removeFrom, JList addTo) {
         List<Object> previousAddTo = new ArrayList<Object>();

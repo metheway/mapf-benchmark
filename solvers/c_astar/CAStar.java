@@ -2,8 +2,10 @@ package solvers.c_astar;
 
 import solvers.ConstrainedSolver;
 import solvers.Reservation;
+import solvers.astar.MultiAgentAStar;
 import solvers.astar.SingleAgentAStar;
 import solvers.astar.State;
+import solvers.states.MultiAgentState;
 import utilities.Agent;
 import utilities.Path;
 import utilities.ProblemInstance;
@@ -57,5 +59,9 @@ public class CAStar extends ConstrainedSolver {
 	public Path getPath() {
 		return Util.mergePaths(paths, problemInstance);
     }
+
+    public String toString() {
+    	return "Cooperative A*";
+	}
 
 }

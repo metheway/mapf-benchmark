@@ -74,4 +74,8 @@ public class ConflictBasedSearch implements Solver {
         CBSNode goalNode = (CBSNode) goal;
         return Util.mergePaths(goalNode.solutions(), problemInstance);
     }
+
+    public String toString() {
+        return "CBS";
+    }
 }

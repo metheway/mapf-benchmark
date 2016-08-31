@@ -177,7 +177,6 @@ public class CBSNode extends State {
     @Override
     public boolean goalTest(ProblemInstance problemInstance) {
         if (isRoot()) findConflict();
-        //System.out.println(conflict);
         return conflict == null;
     }
 

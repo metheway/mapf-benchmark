@@ -68,6 +68,7 @@ public abstract class GenericAStar extends ConstrainedSolver {
         if (getReservation().isValid(state)) {
             if (!closedList.contains(state)) {
                 setStateHeuristic(state);
+                state.updateCATViolations(getConflictAvoidanceTable());
                 openList.add(state);
                 closedList.add(state);
             }

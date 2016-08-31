@@ -45,4 +45,8 @@ public class MultiAgentAStar extends GenericAStar {
     public State createRoot(ProblemInstance problemInstance) {
         return new MultiAgentState(costFunction, problemInstance);
     }
+
+    public String toString() {
+        return "Multiagent A* (" + costFunction.name() + ")";
+    }
 }

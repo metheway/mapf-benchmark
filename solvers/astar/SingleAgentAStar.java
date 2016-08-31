@@ -31,4 +31,8 @@ public class SingleAgentAStar extends MultiAgentAStar {
         return super.createRoot(problemInstance);
     }
 
+    public String toString() {
+        return "Single agent A*";
+    }
+
 }
