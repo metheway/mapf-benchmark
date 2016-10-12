@@ -4,6 +4,7 @@ import solvers.ConflictAvoidanceTable;
 import solvers.astar.*;
 import solvers.independence_detection.EnhancedID;
 import solvers.independence_detection.IndependenceDetection;
+import solvers.sat.SatSolver;
 import solvers.states.ODState;
 import utilities.*;
 import visuals.MapPanel;
@@ -27,7 +28,8 @@ public class SolverTest {
         //testMultiAgent();
         //testIndependenceDetection();
         //testReservation();
-	    testCAT();
+	    //testCAT();
+        testSAT();
 	}
 
 	public static void testSingleAgent() throws FileNotFoundException {
@@ -103,6 +105,16 @@ public class SolverTest {
         path = solver.getPath();
         cat.addPath(path, 1);
         System.out.println(cat);
+    }
+
+    private static void testSAT() throws FileNotFoundException {
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/reservation_test.map"));
+        Graph graph = new Graph(Connected.FOUR, problemMap);
+        ProblemInstance problemInstance = new ProblemInstance(graph, 1);
+        SatSolver solver = new SatSolver();
+        System.out.println("Solving problem");
+        solver.solve(problemInstance);
+        System.out.println("Problem Solved");
     }
 
 }

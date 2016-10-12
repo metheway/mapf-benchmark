@@ -9,6 +9,8 @@ public class EdgeCoordinate {
     public EdgeCoordinate(Node source, Node destination, int timeStep) {
         this.source = source;
         this.destination = destination;
+        // The time step at the beginning of the edge
+        // Ie. An agent is occupying source at timeStep and destination at timeStep + 1
         this.timeStep = timeStep;
     }
 
@@ -51,5 +53,10 @@ public class EdgeCoordinate {
         int result = destination != null ? destination.hashCode() : 0;
         result = 31 * result + timeStep;
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "(t=" + getTimeStep() + ", src=" + getSource() + ", dest=" + getDestination() + ")";
     }
 }
