@@ -110,7 +110,9 @@ public class SolverTest {
     private static void testSAT() throws FileNotFoundException {
         ProblemMap problemMap = new ProblemMap(new File("src/maps/reservation_test.map"));
         Graph graph = new Graph(Connected.FOUR, problemMap);
-        ProblemInstance problemInstance = new ProblemInstance(graph, 1);
+        List<Agent> agents = new ArrayList<Agent>();
+        agents.add(new Agent(0, 1, 1));
+        ProblemInstance problemInstance = new ProblemInstance(graph, agents);
         SatSolver solver = new SatSolver();
         System.out.println("Solving problem");
         solver.solve(problemInstance);

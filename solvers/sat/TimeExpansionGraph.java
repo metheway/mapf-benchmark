@@ -75,6 +75,7 @@ public class TimeExpansionGraph {
     public int getMakespan() {
         return makespan;
     }
+
     /**
      * Returns the number of coordinates in this time expansion graph
      * @return the number of coordinates in this time expansion graph
@@ -237,14 +238,17 @@ public class TimeExpansionGraph {
         int[] metaDataClause = new int[2];
 
         // number of propositional variables in induced submodel
-        metaDataClause[0] = getMakespan() * getNumCoordinates() * getNumEdges();
+        metaDataClause[0] = getMakespan() * getNumCoordinates() * edges.get(0).size();
         // add number of propositional variables in mapping submodel
-        metaDataClause[0] += getMakespan() * getNumCoordinates() * Math.ceil(Math.log(agents.size() + 1));
+        metaDataClause[0] += getMakespan() * initialNodes.size() * Math.ceil(Math.log(agents.size() + 1));
 
-        // number of clauses in mapping submodel
-        metaDataClause[1] = 0;
+        // number of clauses in induced submodel
+        metaDataClause[1] = (getMakespan() * (3 * initialNodes.size() + 2 * edges.get(0).size())) +
+                (getMakespan() *
+                        (initialNodes.get(0).getNeighbors().length *
+                        (initialNodes.get(0).getNeighbors().length + 1)));
         // add number of clauses in mapping submodel
-        metaDataClause[1] += getMakespan() * ((2 * getNumCoordinates()) + getNumEdges()) *
+        metaDataClause[1] += getMakespan() * ((2 * initialNodes.size()) + edges.get(0).size()) *
                 Math.ceil(Math.log(agents.size() + 1));
         // Add to result
         results.add(new VecInt(metaDataClause));
@@ -474,9 +478,9 @@ public class TimeExpansionGraph {
                             results.add(new VecInt(clauseOne));
                             int[] clauseTwo = new int[2];
                             // ~A(v(i),0)[binaryIndex]
-                            clauseTwo[0] *= -1;
+                            clauseTwo[0] = clauseOne[0] * -1;
                             // M(v(i),0)
-                            clauseTwo[1] *= -1;
+                            clauseTwo[1] = clauseOne[1] * -1;
                             results.add(new VecInt(clauseTwo));
                         } else {
                             int[] clause = new int[1];
@@ -504,6 +508,7 @@ public class TimeExpansionGraph {
 //                            (makespan * thisCoordinate.getNode().getIndexInGraph() * numBinaryPropVars) +
 //                            ((thisCoordinate.getTimeStep() - 1) * numBinaryPropVars) +
 //                            binaryIndex);
+                    results.add(new VecInt(clause));
                 }
             }
         }
@@ -512,16 +517,16 @@ public class TimeExpansionGraph {
         // Encoding goal positions
         // TODO: I am not encoding iff, I am just only adding the applicable constraint in each scenario
         List<Coordinate> coordinatesInLastTimeStep = coordinates.get(makespan - 1);
-        for (int coordinateIndex = 0; coordinateIndex < coordinatesInFirstTimeStep.size(); coordinateIndex++) {
-            Coordinate thisCoordinate = coordinatesInFirstTimeStep.get(coordinateIndex);
-            // Check if an agent starts at this coordinate
+        for (int coordinateIndex = 0; coordinateIndex < coordinatesInLastTimeStep.size(); coordinateIndex++) {
+            Coordinate thisCoordinate = coordinatesInLastTimeStep.get(coordinateIndex);
+            // Check if an agent ends at this coordinate
             boolean found = false;
             for (int agentIndex = 0; agentIndex < agents.size() && !found; agentIndex++) {
                 Agent thisAgent = agents.get(agentIndex);
                 if (thisAgent.goal() == thisCoordinate.getNode().getIndexInGraph()) {
                     found = true;
                     boolean[] agentNumBinary = getBinaryPropVars(agentIndex + 1);
-                    // this agent starts in this coordinate
+                    // this agent ends in this coordinate
                     for (int binaryIndex = 0; binaryIndex < numBinaryPropVars; binaryIndex++) {
                         if (agentNumBinary[binaryIndex]) {
                             int[] clauseOne = new int[2];
@@ -558,7 +563,8 @@ public class TimeExpansionGraph {
                 }
             }
 
-            // If no agent starts in this node, then add constraint to make node empty at first timestep
+
+            // If no agent ends in this node, then add constraint to make node empty at last timestep
             if (!found) {
                 for (int binaryIndex = 0; binaryIndex < numBinaryPropVars; binaryIndex++) {
                     int[] clause = new int[1];
@@ -569,6 +575,7 @@ public class TimeExpansionGraph {
 //                            (makespan * thisCoordinate.getNode().getIndexInGraph() * numBinaryPropVars) +
 //                            ((thisCoordinate.getTimeStep() - 1) * numBinaryPropVars) +
 //                            binaryIndex);
+                    results.add(new VecInt(clause));
                 }
             }
         }
@@ -597,7 +604,7 @@ public class TimeExpansionGraph {
      */
     private int getVertexEncoding(Node node, int timeStep) {
         // The index of the node times the makespan, plus the given timestep
-        return node.getIndexInGraph() * makespan + timeStep;
+        return node.getIndexInGraph() * makespan + (timeStep + 1);
     }
 
     /**
@@ -625,7 +632,7 @@ public class TimeExpansionGraph {
     private int getEdgeEncoding(int timeStep, int edgeIndex) {
         // The number of vertex propositional variables, plus the timestep of the edge times
         // the number of edges per timestep, plus the index of edge within each timestep
-        return vertexOffset + timeStep * edges.size() + edgeIndex;
+        return vertexOffset + (timeStep + 1) * edges.size() + edgeIndex;
     }
 
     /**
@@ -664,7 +671,7 @@ public class TimeExpansionGraph {
     private int getAgentEncoding(Node node, int timeStep, int binaryIndex) {
         return vertexOffset + edgeOffset +
                 (makespan * node.getIndexInGraph() * numBinaryPropVars) +
-                ((timeStep - 1) * numBinaryPropVars) +
+                ((timeStep) * numBinaryPropVars) +
                 binaryIndex;
     }
 

@@ -1,5 +1,6 @@
 package solvers.sat;
 
+import org.sat4j.core.Vec;
 import org.sat4j.core.VecInt;
 import org.sat4j.maxsat.SolverFactory;
 import org.sat4j.specs.ContradictionException;
@@ -9,9 +10,7 @@ import org.sat4j.specs.TimeoutException;
 import solvers.Solver;
 import utilities.*;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * A solver that uses the SAT approach. A ProblemInstance is converted
@@ -23,7 +22,7 @@ public class SatSolver implements Solver {
     TimeExpansionGraph timeExpansionGraph;
 
     private void init() {
-        timeExpansionGraph = new TimeExpansionGraph(problemInstance.getGraph().getNodes(), 0);
+        timeExpansionGraph = new TimeExpansionGraph(problemInstance.getGraph().getNodes());
     }
 
     @Override
@@ -39,8 +38,10 @@ public class SatSolver implements Solver {
         timeExpansionGraph.increaseMakespan();
 
         List<VecInt> cnfEncoding = timeExpansionGraph.getCnfEncoding(problemInstance.getAgents());
-        for (VecInt v : cnfEncoding)
-            System.out.println(cnfEncoding);
+        for (VecInt v : cnfEncoding) {
+            System.out.println(v);
+        }
+        System.out.println();
 
         System.out.println(passToExternalSatSolver());
         // TODO: test with external SAT solver, if fails, increase the size of the makespan in the TEG
@@ -62,12 +63,15 @@ public class SatSolver implements Solver {
         try {
             // Add all the clauses to the solver
             while(clauseIterator.hasNext()) {
-                sat4jSolver.addClause(clauseIterator.next());
+                thisClause = clauseIterator.next();
+                System.out.println(thisClause);
+                sat4jSolver.addClause(thisClause);
             }
             IProblem sat4jProblem = sat4jSolver;
             return sat4jProblem.isSatisfiable();
         } catch (ContradictionException e) {
             System.out.println("Contradiction Exception thrown");
+            System.out.println(e.getMessage());
         } catch (TimeoutException e) {
             System.out.println("Timeout");
         }
