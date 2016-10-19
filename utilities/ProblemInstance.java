@@ -1,4 +1,6 @@
 package utilities;
+import solvers.astar.TDHeuristic;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +20,7 @@ public class ProblemInstance {
 	private List<Agent> agents;
 	private List<Node> goalPositions;
     private String mapTitle;
+	private TDHeuristic trueDistanceHeuristic;
 
 	/**
 	 * Constructor that creates a problem instance using the given
@@ -30,6 +33,7 @@ public class ProblemInstance {
         if (!mapTitle.equals(graph.getMapTitle()))
             throw new IllegalArgumentException("Map " + mapTitle + " not compatible with problem instance!\n " +
                                                 "Expected " + graph.getMapTitle());
+        trueDistanceHeuristic = new TDHeuristic(this);
 	}
 
     /**
@@ -44,6 +48,7 @@ public class ProblemInstance {
 		goalPositions = agentGoals();
 		if (duplicateGoalsOrStarts(agents)) throw new IllegalArgumentException("Agents share goals or start positions!"
                                                                                 + agents);
+        trueDistanceHeuristic = new TDHeuristic(this);
 	}
 
     /**
@@ -59,7 +64,12 @@ public class ProblemInstance {
             agents = graph.generateRandomAgents(nAgents);
         }
 		goalPositions = agentGoals();
+        trueDistanceHeuristic = new TDHeuristic(this);
 	}
+
+	public TDHeuristic getTrueDistanceHeuristic() {
+	    return trueDistanceHeuristic;
+    }
 
     /**
      * Convenience method to add an agent to a problem instance
