@@ -2,6 +2,8 @@ package solvers.astar;
 
 import constants.CostFunction;
 import constants.Keys;
+import solvers.ConstrainedSolver;
+import solvers.Solver;
 import solvers.states.MultiAgentState;
 import utilities.CoordinateClosedList;
 import utilities.ProblemInstance;
@@ -25,13 +27,18 @@ public class MultiAgentAStar extends GenericAStar {
         this.costFunction = costFunction;
     }
 
+    public MultiAgentAStar(CostFunction costFunction, ConstrainedSolver highLevel) {
+        this(costFunction);
+    }
+
     /**
      * Constructor that creates a search object with the specified
      * parameters
      * @param params a map containing parameters to alter solver behavior
      */
-    public MultiAgentAStar(HashMap<Keys, Object> params) {
+    public MultiAgentAStar(HashMap<Keys, Object> params, CostFunction costFunction) {
         super(params);
+        this.costFunction = costFunction;
     }
 
     @Override

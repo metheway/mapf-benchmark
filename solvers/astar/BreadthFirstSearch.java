@@ -1,14 +1,13 @@
 package solvers.astar;
 
 
-import constants.Keys;
 import solvers.states.SingleAgentState;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import utilities.ProblemInstance;
 import utilities.StateClosedList;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.PriorityQueue;
 import java.util.Set;
 
 /**
@@ -40,6 +39,14 @@ public class BreadthFirstSearch extends GenericAStar {
 
     public State createRoot(ProblemInstance problemInstance) {
         return new SingleAgentState(0, problemInstance);
+    }
+
+    public boolean isLowLevel() {
+        return false;
+    }
+
+    public TDHeuristic getHeuristic() {
+        throw new NotImplementedException();
     }
 
     @Override

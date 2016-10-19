@@ -1,5 +1,6 @@
 package solvers.astar;
 
+import constants.CostFunction;
 import solvers.states.SingleAgentState;
 import utilities.Agent;
 import utilities.ProblemInstance;
@@ -8,6 +9,8 @@ import utilities.Node;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+//TODO make it possible to use makespan heuristic
 
 /**
  * Object used to find an abbreviated all-pairs-shortest-paths lookup table

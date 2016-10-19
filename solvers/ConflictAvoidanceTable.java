@@ -1,5 +1,6 @@
 package solvers;
 
+import solvers.astar.State;
 import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
 import utilities.Conflict;
@@ -15,6 +16,7 @@ import java.util.Map;
 public class ConflictAvoidanceTable {
 
     public static final int NO_CONFLICT = -1;
+    public static final int NO_GROUP = -1;
 
     // coordinate => prev(s)
     private Map<Coordinate, List<Coordinate>> coordinateTable;
@@ -33,6 +35,19 @@ public class ConflictAvoidanceTable {
         agentDestinations = new HashMap<>();
     }
 
+    public boolean isValid(State state) {
+        if (state instanceof SingleAgentState)
+            return violation((SingleAgentState) state) == NO_CONFLICT;
+
+        if (state instanceof MultiAgentState)
+            return violation((MultiAgentState) state) == NO_CONFLICT;
+
+        return false;
+    }
+
+    public Conflict getEarliestConflict() {
+        return earliestConflict;
+    }
     /**
      * Returns the group that the state conflicts with, if any
      * @param state
@@ -144,7 +159,7 @@ public class ConflictAvoidanceTable {
         addCoordinate(singleAgentState.coordinate(), prev, group);
     }
 
-    private void addCoordinate(Coordinate coordinate, Coordinate prev, int group) {
+    protected void addCoordinate(Coordinate coordinate, Coordinate prev, int group) {
         Conflict updatedConflict = earliestConflict;
 
         // collision
@@ -159,7 +174,11 @@ public class ConflictAvoidanceTable {
             coordinateTable.get(coordinate).add(prev);
             groupOccupantTable.get(coordinate).add(group);
             int otherGroup = groupOccupantTable.get(coordinate).get(0);
-            Conflict newConflict = new Conflict(coordinate.getTimeStep(), group, otherGroup);
+            Conflict newConflict = new Conflict(coordinate.getTimeStep(),
+                                                group,
+                                                otherGroup,
+                                                coordinate.getNode(),
+                                                coordinate.getNode());
             boolean earlier = earliestConflict == null
                             || newConflict.getTimeStep() < earliestConflict.getTimeStep();
             updatedConflict = earlier ? newConflict : earliestConflict;
@@ -179,7 +198,11 @@ public class ConflictAvoidanceTable {
                 for (int i = 0; i < beforeCoords.size() && updatedConflict == earliestConflict; i++) {
                     Coordinate before = beforeCoords.get(i);
                     if (before.equals(coordinate)) {
-                        updatedConflict = new Conflict(coordinate.getTimeStep() + 1, i, group);
+                        updatedConflict = new Conflict(coordinate.getTimeStep() + 1,
+                                                        i,
+                                                        group,
+                                                        coordinate.getNode(),
+                                                        prev.getNode());
                     }
                 }
             }
@@ -193,7 +216,11 @@ public class ConflictAvoidanceTable {
                     && agentDestinations.containsKey(coordinate.getNode())) {
                 int[] destData = agentDestinations.get(coordinate.getNode());
                 if (destData[DEST_TIME_STEP] <= coordinate.getTimeStep()) {
-                    updatedConflict = new Conflict(coordinate.getTimeStep(), destData[DEST_GROUP], group);
+                    updatedConflict = new Conflict(coordinate.getTimeStep(),
+                                        destData[DEST_GROUP],
+                                        group,
+                                        coordinate.getNode(),
+                                        coordinate.getNode());
                 }
             }
         }
@@ -207,9 +234,21 @@ public class ConflictAvoidanceTable {
         }
     }
 
-    private void addDestination(Coordinate coordinate, int group) {
+    protected void addDestination(Coordinate coordinate, int group) {
         agentDestinations.put(coordinate.getNode(),
                                 new int[] {coordinate.getTimeStep(), group});
+    }
+
+    public Map<Node, int[]> getAgentDestinations() {
+        return agentDestinations;
+    }
+
+    public Map<Coordinate, List<Integer>> getGroupOccupantTable() {
+        return groupOccupantTable;
+    }
+
+    public Map<Coordinate, List<Coordinate>> getCoordinateTable() {
+        return coordinateTable;
     }
 
     public void clear() {

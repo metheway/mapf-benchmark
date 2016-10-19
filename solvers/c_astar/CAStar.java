@@ -5,6 +5,7 @@ import solvers.Reservation;
 import solvers.astar.MultiAgentAStar;
 import solvers.astar.SingleAgentAStar;
 import solvers.astar.State;
+import solvers.astar.TDHeuristic;
 import solvers.states.MultiAgentState;
 import utilities.Agent;
 import utilities.Path;
@@ -27,6 +28,10 @@ public class CAStar extends ConstrainedSolver {
 	private HashMap<Keys, Object> params;
 	private List<Path> paths;
 	private ProblemInstance problemInstance;
+
+	public CAStar() {
+
+	}
 
     @Override
 	public boolean solve(ProblemInstance problem) {

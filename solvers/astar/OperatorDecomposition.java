@@ -2,6 +2,7 @@ package solvers.astar;
 
 import constants.CostFunction;
 import constants.Keys;
+import solvers.ConstrainedSolver;
 import solvers.states.ODState;
 import utilities.ProblemInstance;
 
@@ -14,11 +15,16 @@ import java.util.HashMap;
 
 public class OperatorDecomposition extends GenericAStar {
 
+
     /**
      * Constructor that creates a solver that uses
      * operator decomposition A*
      */
     public OperatorDecomposition(){ super(); }
+
+    public OperatorDecomposition(ConstrainedSolver highLevel) {
+        super();
+    }
 
     /**
      * Constructor that takes parameters (unused at the moment)
@@ -26,6 +32,10 @@ public class OperatorDecomposition extends GenericAStar {
      */
     public OperatorDecomposition(HashMap<Keys, Object> params) {
         super(params);
+    }
+
+    public TDHeuristic getHeuristic() {
+        return super.getHeuristic();
     }
 
     @Override

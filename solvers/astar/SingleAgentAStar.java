@@ -2,6 +2,7 @@ package solvers.astar;
 
 import constants.CostFunction;
 import constants.Keys;
+import solvers.ConstrainedSolver;
 import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
 import utilities.CoordinateClosedList;
@@ -20,8 +21,12 @@ public class SingleAgentAStar extends MultiAgentAStar {
      */
     public SingleAgentAStar() { super(CostFunction.SUM_OF_COSTS); }
 
+    public SingleAgentAStar(ConstrainedSolver highLevel) {
+        super(CostFunction.SUM_OF_COSTS, highLevel);
+    }
+
     public SingleAgentAStar(HashMap<Keys, Object> params) {
-        super(params);
+        super(params, CostFunction.SUM_OF_COSTS);
     }
 
     public State createRoot(ProblemInstance problemInstance) {

@@ -1,6 +1,7 @@
 package solvers.cbs;
 
 import constants.CostFunction;
+import solvers.ConflictAvoidanceTable;
 import solvers.Solver;
 import solvers.astar.GenericAStar;
 import solvers.astar.MultiAgentAStar;
@@ -34,6 +35,8 @@ public class ConflictBasedSearch implements Solver {
         init(problemInstance);
 
         CBSNode root = new CBSNode(problemInstance, solvers);
+        getInitialConflict(root);
+
         State current = root;
         openList.add(current);
         while (!openList.isEmpty()){
@@ -44,6 +47,7 @@ public class ConflictBasedSearch implements Solver {
                 return true;
             }
 
+            // otherwise, we know a conflict has occurred
             List<State> neighbors = current.expand(problemInstance);
             //System.out.println("expand reached.");
             for (State child : neighbors) {
@@ -67,6 +71,16 @@ public class ConflictBasedSearch implements Solver {
         for (Agent agent : problemInstance.getAgents()) {
             solvers.add(new SingleAgentAStar());
         }
+    }
+
+    private void getInitialConflict(CBSNode root) {
+        ConflictAvoidanceTable cat = new ConflictAvoidanceTable();
+        int group = 0;
+        for (Path rootPath : root.solutions()) {
+            cat.addPath(rootPath, group);
+            group++;
+        }
+        root.setConflict(cat.getEarliestConflict());
     }
 
     @Override

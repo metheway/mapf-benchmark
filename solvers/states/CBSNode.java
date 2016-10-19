@@ -33,9 +33,8 @@ public class CBSNode extends State {
         for (int agent = 0; agent < problemInstance.getAgents().size(); agent++) {
             solveSingleton(solvers.get(agent), problemInstance, agent);
             solvers.get(agent).addParam(Keys.PREPROCESS, false);
-            solutions.add(
-                    consistent ? solvers.get(agent).getPath() : null
-            );
+            Path newPath = consistent ? solvers.get(agent).getPath() : null;
+            solutions.add(newPath);
         }
         calculateCost(IRRELEVANT);
     }
@@ -138,6 +137,11 @@ public class CBSNode extends State {
         return solutions;
     }
 
+
+    public void setConflict(Conflict conflict) {
+        this.conflict = conflict;
+    }
+
     @Override
     protected void calculateCost(ProblemInstance problemInstance) {
         for (Path path : solutions) {
@@ -176,7 +180,6 @@ public class CBSNode extends State {
 
     @Override
     public boolean goalTest(ProblemInstance problemInstance) {
-        if (isRoot()) findConflict();
         return conflict == null;
     }
 

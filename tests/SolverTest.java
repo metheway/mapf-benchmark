@@ -113,7 +113,7 @@ public class SolverTest {
         Graph graph = new Graph(Connected.EIGHT, problemMap);
 
         for (int i = 0; i < 1; i++) {
-            ProblemInstance problemInstance = new ProblemInstance(graph, 50);
+            ProblemInstance problemInstance = new ProblemInstance(graph, 20);
             long t = System.currentTimeMillis();
             cbs.solve(problemInstance);
             System.out.println(System.currentTimeMillis() - t);

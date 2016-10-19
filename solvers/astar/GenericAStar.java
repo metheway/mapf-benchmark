@@ -99,6 +99,10 @@ public abstract class GenericAStar extends ConstrainedSolver {
     protected void setStateHeuristic(State s) {
         s.setHeuristic(heuristic);
     }
+
+    public TDHeuristic getHeuristic() {
+        return heuristic;
+    }
     
     /**
      * Reset the open and closed lists to solve a new problem of the same type.
