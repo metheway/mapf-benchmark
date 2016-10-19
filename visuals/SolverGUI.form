@@ -16,10 +16,7 @@
         </constraints>
         <properties>
           <font swing-font="Button.font"/>
-          <model>
-            <item value="A*"/>
-            <item value="CA*"/>
-          </model>
+          <model/>
         </properties>
       </component>
       <component id="a0360" class="javax.swing.JList" binding="chosen">
