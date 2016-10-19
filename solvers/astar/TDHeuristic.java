@@ -22,10 +22,20 @@ public class TDHeuristic {
 
     public TDHeuristic(ProblemInstance problem) {
         initLookup(problem);
+        System.out.println(problem.getAgents());
     }
 
-    public double trueDistance(Node pos, int agentId) {
-        return lookupTable[agentId][pos.getIndexInGraph()];
+    //public double trueDistance(Node pos, int agentId) {
+    //    return lookupTable[agentId][pos.getIndexInGraph()];
+    //}
+
+    public double trueDistance(Node pos, int goalIndex) {
+        try {
+            return lookup.get(goalIndex)[pos.getIndexInGraph()];
+        } catch (NullPointerException e) {
+            System.out.println(goalIndex + " " + pos + "\n" + lookup.keySet());
+            throw e;
+        }
     }
 
     private void initLookup(ProblemInstance problem) {
@@ -40,7 +50,9 @@ public class TDHeuristic {
     private List<ProblemInstance> rootStates(ProblemInstance problem) {
         List<ProblemInstance> roots = new ArrayList<>();
         for (Agent a : problem.getAgents()) {
-            ProblemInstance root = new ProblemInstance(problem.getGraph(), Collections.singletonList(new Agent(a.goal(), a.position(), a.id())));
+            ProblemInstance root = new ProblemInstance(problem.getGraph(),
+                    Collections.singletonList(new Agent(a.goal(), a.position(), a.id())),
+                    false);
             roots.add(root);
         }
         return roots;
@@ -51,14 +63,17 @@ public class TDHeuristic {
         int agentId = 0;
         for (ProblemInstance root : rootList) {
             search.solve(root);
-            lookup.put(problem.getAgents().get(0).position(), new double[problem.getGraph().getSize()]);
+            lookup.put(root.getAgents().get(0).position(), new double[problem.getGraph().getSize()]);
             for (State end : search.finalList()) {
                 SingleAgentState endState = (SingleAgentState) end;
                 Node pos = endState.coordinate().getNode();
-                lookup.get(problem.getAgents().get(0).position())[pos.getIndexInGraph()] = endState.gValue();
+                lookup.get(root.getAgents().get(0).position())[pos.getIndexInGraph()] = endState.gValue();
                 lookupTable[agentId][pos.getIndexInGraph()] = endState.gValue();
             }
             agentId++;
+        }
+        if (lookup.keySet().isEmpty()) {
+            System.out.println(problem);
         }
     }
 

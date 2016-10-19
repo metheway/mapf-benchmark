@@ -29,6 +29,7 @@ public class SolverTest {
         //testIndependenceDetection();
         //testReservation();
 	    testCBS();
+        testProblemInstanceWithHeuristic();
 	}
 
 	public static void testSingleAgent() throws FileNotFoundException {
@@ -133,6 +134,13 @@ public class SolverTest {
             System.out.println();
             //System.out.println(id.getPath());
         }
+    }
+
+    public static void testProblemInstanceWithHeuristic() throws FileNotFoundException {
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/arena.map"));
+        Graph graph = new Graph(Connected.EIGHT, problemMap);
+        ProblemInstance problemInstance = new ProblemInstance(graph, 10);
+        System.out.println(problemInstance.getTrueDistanceHeuristic().getLookup());
     }
 
 }

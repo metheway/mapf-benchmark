@@ -34,9 +34,6 @@ public class OperatorDecomposition extends GenericAStar {
         super(params);
     }
 
-    public TDHeuristic getHeuristic() {
-        return super.getHeuristic();
-    }
 
     @Override
     public State createRoot(ProblemInstance problemInstance) {

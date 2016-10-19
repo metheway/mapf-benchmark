@@ -27,14 +27,14 @@ public class ProblemInstance {
      * graph, with agents from a file of serialized agents
 	 * @param agentsFile The file with serialized agent objects
 	 */
-	public ProblemInstance(Graph gr, File agentsFile){
-		agents = deserializeAgents(agentsFile);
+	public ProblemInstance(Graph gr, File agentsFile) {
+        agents = deserializeAgents(agentsFile);
         graph = gr;
         if (!mapTitle.equals(graph.getMapTitle()))
             throw new IllegalArgumentException("Map " + mapTitle + " not compatible with problem instance!\n " +
-                                                "Expected " + graph.getMapTitle());
+                    "Expected " + graph.getMapTitle());
         trueDistanceHeuristic = new TDHeuristic(this);
-	}
+    }
 
     /**
      * Constructor that creates a problem instance using the given
@@ -50,6 +50,15 @@ public class ProblemInstance {
                                                                                 + agents);
         trueDistanceHeuristic = new TDHeuristic(this);
 	}
+
+	public ProblemInstance(Graph graph, List<Agent> agents, boolean useHeuristic) {
+	    this.graph = graph;
+        this.agents = agents;
+        goalPositions = agentGoals();
+        if (duplicateGoalsOrStarts(agents)) throw new IllegalArgumentException("Agents share goals or start positions!"
+                + agents);
+        if (useHeuristic) trueDistanceHeuristic = new TDHeuristic(this);
+    }
 
     /**
      * Constructor that creates a problem instance with the specified graph

@@ -83,8 +83,8 @@ public class IndependenceDetection extends ConstrainedSolver {
     protected boolean populatePaths(ProblemInstance problemInstance) {
         init();
         for (Agent agent : problemInstance.getAgents()) {
-            ProblemInstance newProblem = new ProblemInstance(problemInstance.getGraph(), new ArrayList<>());
-            newProblem.addAgent(agent);
+            ProblemInstance newProblem = new ProblemInstance(problemInstance.getGraph(),
+                                                            Collections.singletonList(new Agent(agent.position(), agent.goal(), 0)));
             problemList.add(newProblem);
         }
         for (ProblemInstance problem : problemList) {

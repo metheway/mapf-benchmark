@@ -19,6 +19,7 @@ public abstract class GenericAStar extends ConstrainedSolver {
     protected IClosedList closedList;
     protected State goal;
     private TDHeuristic heuristic;
+    private ProblemInstance problemInstance;
 
     public GenericAStar() {
         this(new HashMap<>());
@@ -97,23 +98,21 @@ public abstract class GenericAStar extends ConstrainedSolver {
     }
 
     protected void setStateHeuristic(State s) {
-        s.setHeuristic(heuristic);
+        s.setHeuristic(problemInstance.getTrueDistanceHeuristic());
     }
 
-    public TDHeuristic getHeuristic() {
-        return heuristic;
-    }
     
     /**
      * Reset the open and closed lists to solve a new problem of the same type.
      */
     protected void init(ProblemInstance problem) {
     	goal = null;
+        this.problemInstance = problem;
     	openList.clear();
         closedList = new StateClosedList();
-        if (params.get(Keys.PREPROCESS) == null
-                || (Boolean) params.get(Keys.PREPROCESS))
-            heuristic = new TDHeuristic(problem);
+        //if (params.get(Keys.PREPROCESS) == null
+        //        || (Boolean) params.get(Keys.PREPROCESS))
+        //    heuristic = new TDHeuristic(problem);
         if (params.get(Keys.RESERVATIONS) != null)
             setReservation((Reservation) params.get(Keys.RESERVATIONS));
     }

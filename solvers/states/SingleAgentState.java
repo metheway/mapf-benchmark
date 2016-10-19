@@ -40,7 +40,9 @@ import solvers.astar.State;
 public class SingleAgentState extends State {
 
     private final int agentId;
+    private final int agentGoal;
     private final Coordinate coord;
+    private final ProblemInstance problemInstance;
 
     // calculate g-value in the state itself instead of passing cost into the 
     // constructor
@@ -56,6 +58,8 @@ public class SingleAgentState extends State {
         } else {
             coord = new Coordinate(0, currentNode);
         }
+        this.agentGoal = problem.getGoal().get(agentId).getIndexInGraph();
+        this.problemInstance = problem;
         calculateCost(problem);
         this.conflictViolations = backPointer.conflictViolations;
     }
@@ -64,6 +68,8 @@ public class SingleAgentState extends State {
         super(null);
         Agent a = problem.getAgents().get(agentId);
         Node currentNode = problem.getGraph().getNodes().get(a.position());
+        this.problemInstance = problem;
+        this.agentGoal = a.goal();
         this.agentId = agentId;
         coord = new Coordinate(0, currentNode);
     }
@@ -193,7 +199,8 @@ public class SingleAgentState extends State {
     }
 
     public void setHeuristic(TDHeuristic heuristic) {
-        hValue = heuristic.trueDistance(coord.getNode(), agentId);
+        //hValue = heuristic.trueDistance(coord.getNode(), agentId);
+        hValue = problemInstance.getTrueDistanceHeuristic().trueDistance(coord.getNode(), agentGoal);
     }
 
 
