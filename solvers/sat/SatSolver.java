@@ -1,5 +1,6 @@
 package solvers.sat;
 
+import com.sun.javafx.geom.Edge;
 import org.sat4j.core.Vec;
 import org.sat4j.core.VecInt;
 import org.sat4j.maxsat.SolverFactory;

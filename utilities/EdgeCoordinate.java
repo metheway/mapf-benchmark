@@ -51,6 +51,7 @@ public class EdgeCoordinate {
     @Override
     public int hashCode() {
         int result = destination != null ? destination.hashCode() : 0;
+        result *= source != null ? source.hashCode() : 0;
         result = 31 * result + timeStep;
         return result;
     }

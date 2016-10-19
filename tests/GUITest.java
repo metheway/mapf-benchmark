@@ -13,13 +13,13 @@ import visuals.SolverGUI;
 public class GUITest {
 	
 	public static void main(String[] args) throws FileNotFoundException {
-		//testMapPanel();
+//		testMapPanel();
         SolverGUI solverGUI = new SolverGUI();
 	}
 	
 	public static void testMapPanel() throws FileNotFoundException {
 		JFrame mapFrame = new JFrame();
-		File mapFile = new File("MAPF/src/maps/arena.map");
+		File mapFile = new File("src/maps/arena.map");
 		ProblemMap map = new ProblemMap(mapFile);
 		MapPanel panel = new MapPanel(map);
 		mapFrame.setSize(panel.getWidth(), panel.getHeight() + 20);

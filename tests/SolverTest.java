@@ -108,15 +108,15 @@ public class SolverTest {
     }
 
     private static void testSAT() throws FileNotFoundException {
-        ProblemMap problemMap = new ProblemMap(new File("src/maps/reservation_test.map"));
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/blockedtest.map"));
         Graph graph = new Graph(Connected.FOUR, problemMap);
         List<Agent> agents = new ArrayList<Agent>();
-        agents.add(new Agent(0, 1, 1));
+        agents.add(new Agent(0, 12, 1));
+        agents.add(new Agent(1, 0, 2));
         ProblemInstance problemInstance = new ProblemInstance(graph, agents);
         SatSolver solver = new SatSolver();
         System.out.println("Solving problem");
         solver.solve(problemInstance);
-        System.out.println("Problem Solved");
     }
 
 }

@@ -1,21 +1,9 @@
 package solvers.sat;
 
-import com.sun.javafx.geom.Edge;
-import com.sun.javafx.geom.transform.NoninvertibleTransformException;
-import com.sun.media.jfxmedia.effects.EqualizerBand;
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MatchGenerator;
-import com.sun.org.apache.xalan.internal.xsltc.runtime.*;
-import com.sun.xml.internal.bind.v2.runtime.Coordinator;
-import org.apache.commons.collections.ArrayStack;
-import org.omg.CORBA.INTERNAL;
-import org.omg.CORBA.OBJ_ADAPTER;
-import org.omg.PortableServer.ServantLocatorPackage.CookieHolder;
 import org.sat4j.core.VecInt;
-import org.sat4j.specs.TimeoutException;
 import utilities.*;
 import utilities.Node;
 
-import java.sql.Time;
 import java.util.*;
 
 /**
@@ -170,7 +158,6 @@ public class TimeExpansionGraph {
      * the total number of clauses and the total number propositional variables, which are required by Sat4j
      */
     public List<VecInt> getCnfEncoding(List<Agent> agents) {
-        // TODO: Consider using a HashMap<Object, Integer> object to contain prop var encoding indices
         /*
         Use a matching encoding scheme as described in:
         "Compact Representations of Cooperative Path-Finding as SAT
@@ -228,19 +215,40 @@ public class TimeExpansionGraph {
         Add constraints for agents numbered higher than the actual number of agents
          */
 
-        // TODO: consider this approach
+        // TODO: Remove
         // Update the mapping of objects to propositional variable indices
-        updatePropVarMapping(agents);
+//        updatePropVarMapping(agents);
+
+        CnfEncoder encoder = new CnfEncoder(coordinates, edges, agents, makespan);
+        this.numBinaryPropVars = encoder.getNumberOfBinaryVariablesPerAgent();
+        /*
+        System.out.print("Vertices: ");
+        for (List<Coordinate> coordinatesTimestep : coordinates)
+            for (Coordinate coordinate : coordinatesTimestep)
+                System.out.print(encoder.getEncoding(coordinate) + " ");
+        System.out.println();
+        System.out.print("Edges: ");
+        for (List<EdgeCoordinate> edgesTime : edges)
+            for (EdgeCoordinate edge : edgesTime)
+                System.out.print(encoder.getEncoding(edge) + " ");
+        System.out.println();
+        System.out.print("Agents: ");
+        for (Node node : initialNodes)
+            for (int timestep = 0; timestep < makespan; timestep++)
+                for (int binaryIndex = 0; binaryIndex < encoder.getNumberOfBinaryVariablesPerAgent(); binaryIndex++) {
+                    System.out.print(encoder.getEncoding(node, timestep, binaryIndex) + " ");
+                }
+        System.out.println();
+        System.out.println(encoder.getNumberOfBinaryVariablesPerAgent());
+        */
 
         List<VecInt> results = new ArrayList<VecInt>();
 
         // Declare the initial special clauseTwoVars for meta data
         int[] metaDataClause = new int[2];
 
-        // number of propositional variables in induced submodel
-        metaDataClause[0] = getMakespan() * getNumCoordinates() * edges.get(0).size();
-        // add number of propositional variables in mapping submodel
-        metaDataClause[0] += getMakespan() * initialNodes.size() * Math.ceil(Math.log(agents.size() + 1));
+        // number of unique encodings our encoder generated
+        metaDataClause[0] = encoder.getNumberOfVariables();
 
         // number of clauses in induced submodel
         metaDataClause[1] = (getMakespan() * (3 * initialNodes.size() + 2 * edges.get(0).size())) +
@@ -253,27 +261,30 @@ public class TimeExpansionGraph {
         // Add to result
         results.add(new VecInt(metaDataClause));
 
-        updateOffsetsAndNumBinaryPropVars(agents.size());
+//        updateOffsetsAndNumBinaryPropVars(agents.size());
 
         // INDUCED SUBMODEL:
         // Equation 4 and 5:
         // (~E(u,v,i) or M(u,i)) and (~E(u,v,i) or M(v,i+1))
         // (~E(u,i) or M(u,i)) and (~E(u,i) or M(u,i+1))
-        for (int timeStep = 0; timeStep < edges.size(); timeStep++) {
+        for (int timeStep = 0; timeStep < edges.size()-1; timeStep++) {
             List<EdgeCoordinate> edgesInTimeStep = edges.get(timeStep);
             for (int edgeIndex = 0; edgeIndex < edgesInTimeStep.size(); edgeIndex++) {
                 int[] clauseOne = new int[2];
                 EdgeCoordinate thisEdgeCoordinate = edgesInTimeStep.get(edgeIndex);
                 // ~E(u,v,i)
-                clauseOne[0] = -1 * getEdgeEncoding(thisEdgeCoordinate, edgeIndex);
+                clauseOne[0] = -1 * encoder.getEncoding(thisEdgeCoordinate);
+                        //getEdgeEncoding(thisEdgeCoordinate, edgeIndex);
                 // M(u,i)
-                clauseOne[1] = getVertexEncoding(thisEdgeCoordinate.getSource(), thisEdgeCoordinate.getTimeStep());
+                clauseOne[1] = encoder.getEncoding(thisEdgeCoordinate.getSource(), thisEdgeCoordinate.getTimeStep());
+                        //getVertexEncoding(thisEdgeCoordinate.getSource(), thisEdgeCoordinate.getTimeStep());
                 results.add(new VecInt(clauseOne));
                 int[] clauseTwo = new int[2];
                 clauseTwo[0] = clauseOne[0];
                 // M(v,i+1)
-                clauseTwo[1] = getVertexEncoding(thisEdgeCoordinate.getDestination(),
-                        thisEdgeCoordinate.getTimeStep() + 1);
+                clauseTwo[1] =
+                        encoder.getEncoding(thisEdgeCoordinate.getDestination(), thisEdgeCoordinate.getTimeStep() + 1);
+                        //getVertexEncoding(thisEdgeCoordinate.getDestination(), thisEdgeCoordinate.getTimeStep() + 1);
                 results.add(new VecInt(clauseTwo));
             }
         }
@@ -292,14 +303,15 @@ public class TimeExpansionGraph {
                 if (otherEdgeCoordinate.getSource() == thisEdgeCoordinate.getSource() &&
                         (otherEdgeCoordinate.getDestination() != thisEdgeCoordinate.getDestination() ||
                         thisEdgeCoordinate.getSource() == thisEdgeCoordinate.getDestination())) {
-                    // Add a clauseTwoVars for this pair of edges for each timestep
+                    // Add a clause for this pair of edges for each timestep
                     for (int timeStep = 0; timeStep < edges.size(); timeStep++) {
                         int[] clause = new int[2];
-                        List<EdgeCoordinate> edgesInTimeStep = edges.get(timeStep);
                         // ~E(u,v,i)
-                        clause[0] = -1 * getEdgeEncoding(timeStep, edgeIndex);
+                        clause[0] = -1 * encoder.getEncoding(edges.get(timeStep).get(edgeIndex));
+                                //getEdgeEncoding(timeStep, edgeIndex);
                         // ~E(u,w,i)
-                        clause[1] = -1 * getEdgeEncoding(timeStep, otherEdgeIndex);
+                        clause[1] = -1 * encoder.getEncoding(edges.get(timeStep).get(otherEdgeIndex));
+                                //getEdgeEncoding(timeStep, otherEdgeIndex);
                         results.add(new VecInt(clause));
                     }
                 }
@@ -313,7 +325,8 @@ public class TimeExpansionGraph {
             for (int coordinateIndex = 0; coordinateIndex < coordinatesInTimeStep.size(); coordinateIndex++) {
                 Coordinate thisCoordinate = coordinatesInTimeStep.get(coordinateIndex);
                 // ~M(u,i)
-                int propVar1 = -1 * getVertexEncoding(thisCoordinate);
+                int propVar1 = -1 * encoder.getEncoding(thisCoordinate);
+                        //getVertexEncoding(thisCoordinate);
                 // Find all edges that have same timestep and source of thisCoordinate.getNode()
                 List<EdgeCoordinate> edgesInSameTimeStep = edges.get(timeStep);
                 for (int edgeIndex = 0; edgeIndex < edgesInFirstTimeStep.size(); edgeIndex++) {
@@ -322,7 +335,8 @@ public class TimeExpansionGraph {
                         int[] clause = new int[2];
                         clause[0] = propVar1;
                         // E(u,i) or E(u,v,i)
-                        clause[1] = getEdgeEncoding(thisEdgeCoordinate, edgeIndex);
+                        clause[1] = encoder.getEncoding(thisEdgeCoordinate);
+                                //getEdgeEncoding(thisEdgeCoordinate, edgeIndex);
                         results.add(new VecInt(clause));
                     }
                 }
@@ -336,7 +350,8 @@ public class TimeExpansionGraph {
             for (int coordinateIndex = 0; coordinateIndex < coordinatesInTimeStep.size(); coordinateIndex++) {
                 Coordinate thisCoordinate = coordinatesInTimeStep.get(coordinateIndex);
                 // ~M(v, i+1). Consider timestep of coordinate as k = i+1
-                int propVar1 = -1 * getVertexEncoding(thisCoordinate);
+                int propVar1 = -1 * encoder.getEncoding(thisCoordinate);
+                        //getVertexEncoding(thisCoordinate);
 //                        -1 * ((thisCoordinate.getNode().getIndexInGraph() * makespan) +
 //                        thisCoordinate.getTimeStep());
                 // Find all edges that have timestep-1 and destination of thisCoordinate.getNode()
@@ -347,7 +362,8 @@ public class TimeExpansionGraph {
                         int[] clause = new int[2];
                         clause[0] = propVar1;
                         // E(v,i) or E(u,v,i). where i = k-1
-                        clause[1] = getEdgeEncoding(thisEdgeCoordinate, edgeIndex);
+                        clause[1] = encoder.getEncoding(thisEdgeCoordinate);
+                                //getEdgeEncoding(thisEdgeCoordinate, edgeIndex);
 //                                vertexOffset + (timeStep * edgesInPreviousTimeStep.size()) + edgeIndex;
                         results.add(new VecInt(clause));
                     }
@@ -357,17 +373,19 @@ public class TimeExpansionGraph {
 
         // Equation 10:
         // (~E(u,v,i) or ~M(v,i))
-        for (int timeStep = 0; timeStep < edges.size(); timeStep++) {
+        for (int timeStep = 0; timeStep < edges.size()-1; timeStep++) {
             List<EdgeCoordinate> edgesInTimeStep = edges.get(timeStep);
             for (int edgeIndex = 0; edgeIndex < edgesInTimeStep.size(); edgeIndex++) {
                 int[] clause = new int[2];
                 EdgeCoordinate thisEdgeCoordinate = edgesInTimeStep.get(edgeIndex);
                 // ~E(u,v,i)
-                clause[0] = -1 * getEdgeEncoding(thisEdgeCoordinate, edgeIndex);
+                clause[0] = -1 * encoder.getEncoding(thisEdgeCoordinate);
+                        //getEdgeEncoding(thisEdgeCoordinate, edgeIndex);
 //                        -1 * (vertexOffset + (timeStep * edgesInTimeStep.size()) + edgeIndex);
                 // ~M(v,i)
-                clause[1] = -1 *
-                        getVertexEncoding(thisEdgeCoordinate.getDestination(), thisEdgeCoordinate.getTimeStep() + 1);
+                clause[1] = -1 * encoder.getEncoding(
+                        thisEdgeCoordinate.getDestination(), thisEdgeCoordinate.getTimeStep() + 1);
+                        //getVertexEncoding(thisEdgeCoordinate.getDestination(), thisEdgeCoordinate.getTimeStep() + 1);
 //                        -1 * ((thisEdgeCoordinate.getDestination().getIndexInGraph() * makespan) +
 //                        thisEdgeCoordinate.getTimeStep() + 1);
                 results.add(new VecInt(clause));
@@ -383,26 +401,29 @@ public class TimeExpansionGraph {
         // ...
         // (~E(u,v,i) or ~A(u,i)[log2(|A|+1) or A(v, i+1)[log2(|A|+1]) and
         // (~E(u,v,i) or A(u,i)[log2(|A|+1]] or ~A(v, i+1)[log2(|A|+1]])
-        for (int timeStep = 0; timeStep < edges.size(); timeStep++) {
+        for (int timeStep = 0; timeStep < edges.size()-1; timeStep++) {
             List<EdgeCoordinate> edgesInTimestep = edges.get(timeStep);
             for (int edgeIndex = 0; edgeIndex < edgesInTimestep.size(); edgeIndex++) {
                 EdgeCoordinate thisEdgeCoordinate = edgesInTimestep.get(edgeIndex);
                 // ~E(u,v,i)
-                int propVar1 = -1 * getEdgeEncoding(thisEdgeCoordinate, edgeIndex);
+                int propVar1 = -1 * encoder.getEncoding(thisEdgeCoordinate);
+                    //getEdgeEncoding(thisEdgeCoordinate, edgeIndex);
 //                        -1 * (vertexOffset + (timeStep * edgesInFirstTimeStep.size()) + edgeIndex);
                 for (int binaryIndex = 0; binaryIndex < numBinaryPropVars; binaryIndex++) {
                     int[] clauseOne = new int[3];
                     clauseOne[0] = propVar1;
                     // ~A(u,i)[binaryIndex]
-                    clauseOne[1] = -1 * getAgentEncoding(thisEdgeCoordinate.getSource(),
-                            thisEdgeCoordinate.getTimeStep(), binaryIndex);
+                    clauseOne[1] = -1 * encoder.getEncoding(
+                            thisEdgeCoordinate.getSource(), thisEdgeCoordinate.getTimeStep(), binaryIndex);
+                            //getAgentEncoding(thisEdgeCoordinate.getSource(), thisEdgeCoordinate.getTimeStep(), binaryIndex);
 //                            -1 * (vertexOffset + edgeOffset +
 //                            (makespan * thisEdgeCoordinate.getSource().getIndexInGraph() * numBinaryPropVars) +
 //                            ((thisEdgeCoordinate.getTimeStep() - 1) * numBinaryPropVars) +
 //                            binaryIndex);
                     // A(v,i+1)[binaryIndex]
-                    clauseOne[2] = getAgentEncoding(thisEdgeCoordinate.getDestination(),
-                            thisEdgeCoordinate.getTimeStep() + 1, binaryIndex);
+                    clauseOne[2] = encoder.getEncoding(
+                            thisEdgeCoordinate.getDestination(), thisEdgeCoordinate.getTimeStep() + 1, binaryIndex);
+                            //getAgentEncoding(thisEdgeCoordinate.getDestination(), thisEdgeCoordinate.getTimeStep() + 1, binaryIndex);
 //                            vertexOffset + edgeOffset +
 //                            (makespan * thisEdgeCoordinate.getDestination().getIndexInGraph() * numBinaryPropVars) +
 //                            ((thisEdgeCoordinate.getTimeStep()) * numBinaryPropVars) +
@@ -429,14 +450,15 @@ public class TimeExpansionGraph {
             for (int coordinateIndex = 0; coordinateIndex < coordinatesInTimeStep.size(); coordinateIndex++) {
                 Coordinate thisCoordinate = coordinatesInTimeStep.get(coordinateIndex);
                 // M(u,i)
-                int propVar2 = getVertexEncoding(thisCoordinate);
+                int propVar2 = encoder.getEncoding(thisCoordinate);
+                    //getVertexEncoding(thisCoordinate);
 //                        (thisCoordinate.getNode().getIndexInGraph() * makespan) + thisCoordinate.getTimeStep();
                 for (int binaryIndex = 0; binaryIndex < numBinaryPropVars; binaryIndex++) {
                     int[] clause = new int[2];
                     clause[1] = propVar2;
                     // ~A(u,i)[binaryIndex]
-                    clause[0] = -1 * getAgentEncoding(thisCoordinate.getNode(),
-                            thisCoordinate.getTimeStep(), binaryIndex);
+                    clause[0] = -1 * encoder.getEncoding(thisCoordinate, binaryIndex);
+                            //getAgentEncoding(thisCoordinate.getNode(), thisCoordinate.getTimeStep(), binaryIndex);
 //                            -1 * (vertexOffset + edgeOffset +
 //                            (makespan * thisCoordinate.getNode().getIndexInGraph() * numBinaryPropVars) +
 //                            ((thisCoordinate.getTimeStep() - 1) * numBinaryPropVars) +
@@ -459,20 +481,22 @@ public class TimeExpansionGraph {
                 Agent thisAgent = agents.get(agentIndex);
                 if (thisAgent.position() == thisCoordinate.getNode().getIndexInGraph()) {
                     found = true;
-                    boolean[] agentNumBinary = getBinaryPropVars(agentIndex + 1);
+                    boolean[] agentNumBinary = getBinaryEncoding(agentIndex + 1,
+                            encoder.getNumberOfBinaryVariablesPerAgent());
                     // this agent starts in this coordinate
                     for (int binaryIndex = 0; binaryIndex < numBinaryPropVars; binaryIndex++) {
                         if (agentNumBinary[binaryIndex]) {
                             int[] clauseOne = new int[2];
                             // A(v(i),0)[binaryIndex]
-                            clauseOne[0] = getAgentEncoding(thisCoordinate.getNode(),
-                                    thisCoordinate.getTimeStep(), binaryIndex);
+                            clauseOne[0] = encoder.getEncoding(thisCoordinate, binaryIndex);
+                                    //getAgentEncoding(thisCoordinate.getNode(), thisCoordinate.getTimeStep(), binaryIndex);
 //                                    vertexOffset + edgeOffset +
 //                                    (makespan * thisCoordinate.getNode().getIndexInGraph() * numBinaryPropVars) +
 //                                    ((thisCoordinate.getTimeStep() - 1) * numBinaryPropVars) +
 //                                    binaryIndex;
                             // ~M(v(i),0)
-                            clauseOne[1] = -1 * getVertexEncoding(thisCoordinate);
+                            clauseOne[1] = -1 * encoder.getEncoding(thisCoordinate);
+                                    //getVertexEncoding(thisCoordinate);
 //                                    -1 * ((thisCoordinate.getNode().getIndexInGraph() * makespan) +
 //                                    thisCoordinate.getTimeStep());
                             results.add(new VecInt(clauseOne));
@@ -485,8 +509,8 @@ public class TimeExpansionGraph {
                         } else {
                             int[] clause = new int[1];
                             // ~A(v(i),0)[binaryIndex]
-                            clause[0] = -1 * getAgentEncoding(thisCoordinate.getNode(),
-                                    thisCoordinate.getTimeStep(), binaryIndex);
+                            clause[0] = -1 * encoder.getEncoding(thisCoordinate, binaryIndex);
+                                    //getAgentEncoding(thisCoordinate.getNode(), thisCoordinate.getTimeStep(), binaryIndex);
 //                                    -1 * (vertexOffset + edgeOffset +
 //                                    (makespan * thisCoordinate.getNode().getIndexInGraph() * numBinaryPropVars) +
 //                                    ((thisCoordinate.getTimeStep() - 1) * numBinaryPropVars) +
@@ -502,8 +526,8 @@ public class TimeExpansionGraph {
                 for (int binaryIndex = 0; binaryIndex < numBinaryPropVars; binaryIndex++) {
                     int[] clause = new int[1];
                     // ~A(v(i),0)[binaryIndex]
-                    clause[0] = -1 * getAgentEncoding(thisCoordinate.getNode(),
-                            thisCoordinate.getTimeStep(), binaryIndex);
+                    clause[0] = -1 * encoder.getEncoding(thisCoordinate, binaryIndex);
+                            //getAgentEncoding(thisCoordinate.getNode(), thisCoordinate.getTimeStep(), binaryIndex);
 //                            -1 * (vertexOffset + edgeOffset +
 //                            (makespan * thisCoordinate.getNode().getIndexInGraph() * numBinaryPropVars) +
 //                            ((thisCoordinate.getTimeStep() - 1) * numBinaryPropVars) +
@@ -525,20 +549,22 @@ public class TimeExpansionGraph {
                 Agent thisAgent = agents.get(agentIndex);
                 if (thisAgent.goal() == thisCoordinate.getNode().getIndexInGraph()) {
                     found = true;
-                    boolean[] agentNumBinary = getBinaryPropVars(agentIndex + 1);
+                    boolean[] agentNumBinary = getBinaryEncoding(agentIndex + 1,
+                            encoder.getNumberOfBinaryVariablesPerAgent());
                     // this agent ends in this coordinate
                     for (int binaryIndex = 0; binaryIndex < numBinaryPropVars; binaryIndex++) {
                         if (agentNumBinary[binaryIndex]) {
                             int[] clauseOne = new int[2];
                             // A(v(i),0)[binaryIndex]
-                            clauseOne[0] = getAgentEncoding(thisCoordinate.getNode(),
-                                    thisCoordinate.getTimeStep(), binaryIndex);
+                            clauseOne[0] = encoder.getEncoding(thisCoordinate, binaryIndex);
+                                    //getAgentEncoding(thisCoordinate.getNode(), thisCoordinate.getTimeStep(), binaryIndex);
 //                                    vertexOffset + edgeOffset +
 //                                    (makespan * thisCoordinate.getNode().getIndexInGraph() * numBinaryPropVars) +
 //                                    ((thisCoordinate.getTimeStep() - 1) * numBinaryPropVars) +
 //                                    binaryIndex;
                             // ~M(v(i),0)
-                            clauseOne[1] = getVertexEncoding(thisCoordinate);
+                            clauseOne[1] = -1 * encoder.getEncoding(thisCoordinate);
+                                    //getVertexEncoding(thisCoordinate);
 //                                    -1 * ((thisCoordinate.getNode().getIndexInGraph() * makespan) +
 //                                    thisCoordinate.getTimeStep());
                             results.add(new VecInt(clauseOne));
@@ -551,8 +577,8 @@ public class TimeExpansionGraph {
                         } else {
                             int[] clause = new int[1];
                             // ~A(v(i),0)[binaryIndex]
-                            clause[0] = -1 * getAgentEncoding(thisCoordinate.getNode(),
-                                    thisCoordinate.getTimeStep(), binaryIndex);
+                            clause[0] = -1 * encoder.getEncoding(thisCoordinate, binaryIndex);
+                                    //getAgentEncoding(thisCoordinate.getNode(), thisCoordinate.getTimeStep(), binaryIndex);
 //                                    -1 * (vertexOffset + edgeOffset +
 //                                    (makespan * thisCoordinate.getNode().getIndexInGraph() * numBinaryPropVars) +
 //                                    ((thisCoordinate.getTimeStep() - 1) * numBinaryPropVars) +
@@ -569,8 +595,8 @@ public class TimeExpansionGraph {
                 for (int binaryIndex = 0; binaryIndex < numBinaryPropVars; binaryIndex++) {
                     int[] clause = new int[1];
                     // ~A(v(i),0)[binaryIndex]
-                    clause[0] = -1 * getAgentEncoding(thisCoordinate.getNode(),
-                            thisCoordinate.getTimeStep(), binaryIndex);
+                    clause[0] = -1 * encoder.getEncoding(thisCoordinate, binaryIndex);
+                            //getAgentEncoding(thisCoordinate.getNode(), thisCoordinate.getTimeStep(), binaryIndex);
 //                            -1 * (vertexOffset + edgeOffset +
 //                            (makespan * thisCoordinate.getNode().getIndexInGraph() * numBinaryPropVars) +
 //                            ((thisCoordinate.getTimeStep() - 1) * numBinaryPropVars) +
@@ -583,6 +609,7 @@ public class TimeExpansionGraph {
         return results;
     }
 
+
     /**
      * Gets the unique CNF encoding value of the vertex propositional variable
      * associated with the given coordinate
@@ -590,9 +617,9 @@ public class TimeExpansionGraph {
      * @return Returns the unique CNF encoding value of the vertex propositional variable
      * associated with the given coordinate
      */
-    private int getVertexEncoding(Coordinate coordinate) {
-        return getVertexEncoding(coordinate.getNode(), coordinate.getTimeStep());
-    }
+//    private int getVertexEncoding(Coordinate coordinate) {
+//        return getVertexEncoding(coordinate.getNode(), coordinate.getTimeStep());
+//    }
 
     /**
      * Gets the unique CNF encoding value of the vertex propositional variable
@@ -602,10 +629,10 @@ public class TimeExpansionGraph {
      * @return Returns the unique CNF encoding value of the vertex propositional variable
      * associated with the given node at the given timestep
      */
-    private int getVertexEncoding(Node node, int timeStep) {
-        // The index of the node times the makespan, plus the given timestep
-        return node.getIndexInGraph() * makespan + (timeStep + 1);
-    }
+//    private int getVertexEncoding(Node node, int timeStep) {
+//         The index of the node times the makespan, plus the given timestep
+//        return node.getIndexInGraph() * makespan + (timeStep + 1);
+//    }
 
     /**
      * Gets the unique CNF encoding value for the edge propositional variable
@@ -615,11 +642,11 @@ public class TimeExpansionGraph {
      * @return Returns the unique CNF encoding value for the edge propositional variable
      * associated with the given edge and edge index
      */
-    private int getEdgeEncoding(EdgeCoordinate edge, int edgeIndex) {
-        // The number of vertex propositional variables, plus the timestep of the edge times
-        // the number of edges per timestep, plus the index of edge within each timestep
-        return getEdgeEncoding(edge.getTimeStep(), edgeIndex);
-    }
+//    private int getEdgeEncoding(EdgeCoordinate edge, int edgeIndex) {
+//         The number of vertex propositional variables, plus the timestep of the edge times
+//         the number of edges per timestep, plus the index of edge within each timestep
+//        return getEdgeEncoding(edge.getTimeStep(), edgeIndex);
+//    }
 
     /**
      * Gets the unique CNF encoding value for the edge propositional variable
@@ -629,11 +656,11 @@ public class TimeExpansionGraph {
      * @return Returns the unique CNF encoding value for the edge propositional variable
      * associated with the given timestep and edge index
      */
-    private int getEdgeEncoding(int timeStep, int edgeIndex) {
+//    private int getEdgeEncoding(int timeStep, int edgeIndex) {
         // The number of vertex propositional variables, plus the timestep of the edge times
         // the number of edges per timestep, plus the index of edge within each timestep
-        return vertexOffset + (timeStep + 1) * edges.size() + edgeIndex;
-    }
+//        return vertexOffset + (timeStep + 1) * edges.size() + edgeIndex;
+//    }
 
     /**
      * Gets the unique CNF encoding value for the first agent propositional variable
@@ -642,9 +669,9 @@ public class TimeExpansionGraph {
      * @return  Returns the unique CNF encoding value for the first agent propositional variable
      * associated with the given coordinate
      */
-    private int getAgentEncoding(Coordinate coordinate) {
-        return getAgentEncoding(coordinate.getNode(), coordinate.getTimeStep());
-    }
+//    private int getAgentEncoding(Coordinate coordinate) {
+//        return getAgentEncoding(coordinate.getNode(), coordinate.getTimeStep());
+//    }
 
     /**
      * Gets the unique CNF encoding value for the first agent propositional variable
@@ -654,9 +681,9 @@ public class TimeExpansionGraph {
      * @return  Returns the unique CNF encoding value for the first agent propositional variable
      * associated with the given node and timestep
      */
-    private int getAgentEncoding(Node node, int timeStep) {
-        return getAgentEncoding(node, timeStep, 0);
-    }
+//    private int getAgentEncoding(Node node, int timeStep) {
+//        return getAgentEncoding(node, timeStep, 0);
+//    }
 
     /**
      * Gets the unique CNF encoding value for the agent propositional variable
@@ -668,23 +695,23 @@ public class TimeExpansionGraph {
      * propositional variable associated with the given node, timestep,
      * and index into the agent variable's binary vector
      */
-    private int getAgentEncoding(Node node, int timeStep, int binaryIndex) {
-        return vertexOffset + edgeOffset +
-                (makespan * node.getIndexInGraph() * numBinaryPropVars) +
-                ((timeStep) * numBinaryPropVars) +
-                binaryIndex;
-    }
+//    private int getAgentEncoding(Node node, int timeStep, int binaryIndex) {
+//        return vertexOffset + edgeOffset +
+//                (makespan * node.getIndexInGraph() * numBinaryPropVars) +
+//                ((timeStep) * numBinaryPropVars) +
+//                binaryIndex;
+//    }
 
     /**
      * Updates the offsets and the number of binary propositional variables used to represent
      * each agent propositional variable
      * @param n The number of agents
      */
-    private void updateOffsetsAndNumBinaryPropVars(int n) {
-        this.vertexOffset = 1 + getNumCoordinates();
-        this.edgeOffset = vertexOffset + getNumEdges();
-        this.numBinaryPropVars = (int)Math.ceil(Math.log(n + 1)/Math.log(2));
-    }
+//    private void updateOffsetsAndNumBinaryPropVars(int n) {
+//        this.vertexOffset = 1 + getNumCoordinates();
+//        this.edgeOffset = vertexOffset + getNumEdges();
+//        this.numBinaryPropVars = (int)Math.ceil(Math.log(n + 1)/Math.log(2));
+//    }
 
     /**
      * Creates a boolean vector that represents the binary encoding of n.
@@ -692,43 +719,14 @@ public class TimeExpansionGraph {
      * @param n The int to create a binary encoding of
      * @return Returns an boolean vector that represents a binary encoding of n
      */
-    private boolean[] getBinaryPropVars(int n) {
-        boolean[] result = new boolean[numBinaryPropVars];
-        for (int i = 0; i < numBinaryPropVars; i++) {
-            result[numBinaryPropVars - 1 - i] = (n & (1 << i)) != 0;
+    private boolean[] getBinaryEncoding(int n, int length) {
+        boolean[] result = new boolean[length];
+        for (int i = 0; i < length; i++) {
+            result[length - 1 - i] = (n & (1 << i)) != 0;
         }
         return result;
     }
 
-    private void updatePropVarMapping(List<Agent> agents) {
-        Map<Object, Integer> mapping = new HashMap<Object, Integer>();
-        int propVarIndex = 1;
-        // Place coordinates in mapping
-        for (List<Coordinate> coordinatesInTimeStep : coordinates) {
-            for (Coordinate coordinate : coordinatesInTimeStep) {
-                mapping.put(coordinate, propVarIndex);
-                propVarIndex++;
-            }
-        }
-        // Place edges in mapping
-        for (List<EdgeCoordinate> edgesInTimeStep : edges) {
-            for (EdgeCoordinate edge : edgesInTimeStep) {
-                mapping.put(edge, propVarIndex);
-                propVarIndex++;
-            }
-        }
-        // Place agents in mapping
-        // Length of vector of propositional variables needed to represent agents.size() agents
-        int numBinaryVars = (int)Math.ceil(Math.log(agents.size() + 1));
-        for (Agent agent : agents) {
-            mapping.put(agent, propVarIndex);
-            // Add number of prop vars needed to represent integer number of agent
-            propVarIndex += numBinaryVars;
-        }
-
-        // Update the propositional variable mapping
-        propVarMapping = mapping;
-    }
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
