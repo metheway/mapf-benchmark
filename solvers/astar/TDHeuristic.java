@@ -1,14 +1,11 @@
 package solvers.astar;
 
-import constants.CostFunction;
 import solvers.states.SingleAgentState;
 import utilities.Agent;
 import utilities.ProblemInstance;
 import utilities.Node;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 //TODO make it possible to use makespan heuristic
 
@@ -21,6 +18,7 @@ public class TDHeuristic {
 
     // table to look up costs
     private double[][] lookupTable;
+    private Map<Integer, double[]> lookup;
 
     public TDHeuristic(ProblemInstance problem) {
         initLookup(problem);
@@ -32,6 +30,7 @@ public class TDHeuristic {
 
     private void initLookup(ProblemInstance problem) {
         lookupTable = new double[problem.getAgents().size()][problem.getGraph().getSize()];
+        lookup = new HashMap<>();
         // run UCS
         // fill lookupTable with values from the closed list when UCS finishes
         List<ProblemInstance> roots = rootStates(problem);
@@ -52,9 +51,11 @@ public class TDHeuristic {
         int agentId = 0;
         for (ProblemInstance root : rootList) {
             search.solve(root);
+            lookup.put(problem.getAgents().get(0).position(), new double[problem.getGraph().getSize()]);
             for (State end : search.finalList()) {
                 SingleAgentState endState = (SingleAgentState) end;
                 Node pos = endState.coordinate().getNode();
+                lookup.get(problem.getAgents().get(0).position())[pos.getIndexInGraph()] = endState.gValue();
                 lookupTable[agentId][pos.getIndexInGraph()] = endState.gValue();
             }
             agentId++;
@@ -63,5 +64,9 @@ public class TDHeuristic {
 
 
     public double[][] getLookupTable() { return lookupTable; }
+
+    public Map<Integer, double[]> getLookup() {
+        return lookup;
+    }
 
 }
