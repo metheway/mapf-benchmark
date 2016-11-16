@@ -18,7 +18,6 @@ public abstract class GenericAStar extends ConstrainedSolver {
     protected PriorityQueue<State> openList;
     protected IClosedList closedList;
     protected State goal;
-    private TDHeuristic heuristic;
     private ProblemInstance problemInstance;
 
     public GenericAStar() {
@@ -31,6 +30,11 @@ public abstract class GenericAStar extends ConstrainedSolver {
      * @param params parameters to alter the behavior of an A* solver
      */
     public GenericAStar(Map<Keys, Object> params) {
+        this(null, -1, params);
+    }
+
+    public GenericAStar(ConstrainedSolver parentSolver, int groupToSolve, Map<Keys, Object> params) {
+        super(parentSolver, groupToSolve);
         this.params = params;
         openList = new PriorityQueue<>();
         closedList = new StateClosedList();
@@ -110,9 +114,6 @@ public abstract class GenericAStar extends ConstrainedSolver {
         this.problemInstance = problem;
     	openList.clear();
         closedList = new StateClosedList();
-        //if (params.get(Keys.PREPROCESS) == null
-        //        || (Boolean) params.get(Keys.PREPROCESS))
-        //    heuristic = new TDHeuristic(problem);
         if (params.get(Keys.RESERVATIONS) != null)
             setReservation((Reservation) params.get(Keys.RESERVATIONS));
     }

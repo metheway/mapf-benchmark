@@ -84,7 +84,7 @@ public class MACBSNode extends State {
         for (int group = 0; group < solutions.size(); group++) {
             if (group != constraint.constrainedAgent()) {
                 Path otherPath = solutions.get(group);
-                solver.getConflictAvoidanceTable().addPath(otherPath, group);
+                solver.getConflictAvoidanceTable().addPath(otherPath);
             }
         }
 

@@ -9,6 +9,7 @@ import utilities.CoordinateClosedList;
 import utilities.ProblemInstance;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class that implements A* search for multi-agent states
@@ -23,12 +24,11 @@ public class MultiAgentAStar extends GenericAStar {
      * @param costFunction the cost function to minimize
      */
     public MultiAgentAStar(CostFunction costFunction) {
-        super();
-        this.costFunction = costFunction;
+        this(costFunction, null, -1);
     }
 
-    public MultiAgentAStar(CostFunction costFunction, ConstrainedSolver highLevel) {
-        this(costFunction);
+    public MultiAgentAStar(CostFunction costFunction, ConstrainedSolver highLevel, int groupToSolve) {
+        this(highLevel, groupToSolve, costFunction, new HashMap<>());
     }
 
     /**
@@ -36,8 +36,8 @@ public class MultiAgentAStar extends GenericAStar {
      * parameters
      * @param params a map containing parameters to alter solver behavior
      */
-    public MultiAgentAStar(HashMap<Keys, Object> params, CostFunction costFunction) {
-        super(params);
+    public MultiAgentAStar(ConstrainedSolver highLevel, int groupToSolve, CostFunction costFunction, Map<Keys, Object> params) {
+        super(highLevel, groupToSolve, params);
         this.costFunction = costFunction;
     }
 

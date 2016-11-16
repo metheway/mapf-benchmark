@@ -52,6 +52,7 @@ public class CBSNode extends State {
         CBSConstraint constraint1 = new CBSConstraint(conflict.getGroup1(), conflictCoordinate1, conflictPrev1);
         CBSConstraint constraint2 = new CBSConstraint(conflict.getGroup2(), conflictCoordinate2, conflictPrev2);
 
+        //System.out.println(constraint1 + " " + constraint2);
         neighbors.add(new CBSNode(this, constraint1));
         neighbors.add(new CBSNode(this, constraint2));
 
@@ -92,7 +93,7 @@ public class CBSNode extends State {
         for (int group = 0; group < solutions.size(); group++) {
             if (group != constraint.constrainedAgent()) {
                 Path otherPath = solutions.get(group);
-                solver.getConflictAvoidanceTable().addPath(otherPath, group);
+                solver.getConflictAvoidanceTable().addPath(otherPath);
             }
         }
         //System.out.println(solver.getReservation().reservedCoordinates);

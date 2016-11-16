@@ -73,7 +73,7 @@ public class IndependenceDetection extends ConstrainedSolver {
     protected ProblemInstance handleProblemMerge(int index, int indexOfConflict) {
         ProblemInstance problem = problemList.get(index);
         ProblemInstance conflicting = problemList.get(indexOfConflict);
-        ProblemInstance joined = problem.join(conflicting);
+        ProblemInstance joined = problem.join(conflicting, false);
         problemList.set(index, joined);
         problemList.remove(indexOfConflict);
         pathList.remove(indexOfConflict);
@@ -82,9 +82,12 @@ public class IndependenceDetection extends ConstrainedSolver {
 
     protected boolean populatePaths(ProblemInstance problemInstance) {
         init();
+        // all subproblems will reference the same heuristic
         for (Agent agent : problemInstance.getAgents()) {
+            Agent newAgent = new Agent(agent.position(), agent.goal(), 0);
             ProblemInstance newProblem = new ProblemInstance(problemInstance.getGraph(),
-                                                            Collections.singletonList(new Agent(agent.position(), agent.goal(), 0)));
+                                                             Collections.singletonList(newAgent),
+                                                             initialProblem.getTrueDistanceHeuristic());
             problemList.add(newProblem);
         }
         for (ProblemInstance problem : problemList) {

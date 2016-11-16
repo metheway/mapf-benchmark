@@ -1,12 +1,26 @@
 package solvers;
 
 import utilities.Coordinate;
+import utilities.Node;
 import utilities.Path;
+
+import java.util.List;
+import java.util.Map;
 
 public class Reservation extends ConflictAvoidanceTable {
 
-    private int lastTimeStep;
-    private static final int NO_GROUP = -1;
+    private static final int NO_GROUP = 1;
+
+    public Reservation() {
+        super();
+    }
+
+    public Reservation(Map<Coordinate, List<Coordinate>> coordinateTable,
+                                  Map<Coordinate, List<Integer>> groupOccupantTable,
+                                  Map<Node, int[]> agentDestinations,
+                                  int lastTimeStep) {
+        super(coordinateTable, groupOccupantTable, agentDestinations, lastTimeStep);
+    }
 
     public void reserveCoordinate(Coordinate coordinate, Coordinate previous) {
         addCoordinate(coordinate, previous, NO_GROUP);
@@ -18,7 +32,7 @@ public class Reservation extends ConflictAvoidanceTable {
     }
 
     public void reservePath(Path path) {
-        super.addPath(path, NO_GROUP);
+        super.addPath(path);
         lastTimeStep = Math.max(lastTimeStep, path.getLast().timeStep());
     }
 
@@ -29,5 +43,13 @@ public class Reservation extends ConflictAvoidanceTable {
     public void clear() {
         super.clear();
         lastTimeStep = 0;
+    }
+
+    public Reservation deepCopy() {
+        ConflictAvoidanceTable baseCAT = super.deepCopy();
+        return new Reservation( baseCAT.coordinateTable,
+                                baseCAT.groupOccupantTable,
+                                baseCAT.agentDestinations,
+                                baseCAT.lastTimeStep);
     }
 }

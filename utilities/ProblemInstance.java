@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OptionalDataException;
+import java.util.stream.Stream;
 
 public class ProblemInstance {
 	private Graph graph;
@@ -43,12 +44,7 @@ public class ProblemInstance {
      * @param agents the agents in the problem
      */
 	public ProblemInstance(Graph graph, List<Agent> agents) {
-		this.graph = graph;
-		this.agents = agents;
-		goalPositions = agentGoals();
-		if (duplicateGoalsOrStarts(agents)) throw new IllegalArgumentException("Agents share goals or start positions!"
-                                                                                + agents);
-        trueDistanceHeuristic = new TDHeuristic(this);
+		this(graph, agents, true);
 	}
 
 	public ProblemInstance(Graph graph, List<Agent> agents, boolean useHeuristic) {
@@ -58,6 +54,35 @@ public class ProblemInstance {
         if (duplicateGoalsOrStarts(agents)) throw new IllegalArgumentException("Agents share goals or start positions!"
                 + agents);
         if (useHeuristic) trueDistanceHeuristic = new TDHeuristic(this);
+    }
+
+    public ProblemInstance(Graph graph, List<Agent> agents, TDHeuristic heuristic) {
+        this(graph, agents, false);
+        this.trueDistanceHeuristic = heuristic;
+    }
+
+    /**
+     * Constructs a subproblem using the specified agents with the same heuristic
+     * @param parent the problem instance that should be copied
+     */
+    public ProblemInstance(ProblemInstance parent, List<Integer> agentIDs) {
+        this.graph = parent.getGraph();
+        this.agents = agentsFromList(parent, agentIDs);
+        goalPositions = agentGoals();
+        if (duplicateGoalsOrStarts(agents)) throw new IllegalArgumentException("Agents share goals or start positions!"
+                + agents);
+        this.trueDistanceHeuristic = parent.getTrueDistanceHeuristic();
+    }
+
+    private List<Agent> agentsFromList(ProblemInstance problemInstance, List<Integer> agentIDs) {
+        List<Agent> agents = new ArrayList<>();
+        int newId = 0;
+        for (int id : agentIDs) {
+            Agent oldAgent = problemInstance.getAgents().get(id);
+            Agent newAgent = new Agent(oldAgent.position(), oldAgent.goal(), newId++);
+            agents.add(newAgent);
+        }
+        return agents;
     }
 
     /**
@@ -100,13 +125,17 @@ public class ProblemInstance {
      * @param other the other problem instance
      * @return the union of this problem instance with the other one
      */
-    public ProblemInstance join(ProblemInstance other) {
+    public ProblemInstance join(ProblemInstance other, boolean recomputeHeuristic) {
         List<Agent> joinAgents = new ArrayList<>(agents);
         for (Agent agent : other.agents) {
             Agent newAgent = new Agent(agent.position(), agent.goal(), joinAgents.size());
             joinAgents.add(newAgent);
         }
-        return new ProblemInstance(graph, joinAgents);
+        if (recomputeHeuristic) {
+            return new ProblemInstance(graph, joinAgents);
+        } else {
+            return new ProblemInstance(graph, joinAgents, this.getTrueDistanceHeuristic());
+        }
     }
 
     /**

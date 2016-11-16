@@ -22,7 +22,7 @@ public class TDHeuristic {
 
     public TDHeuristic(ProblemInstance problem) {
         initLookup(problem);
-        System.out.println(problem.getAgents());
+        //System.out.println(problem.getAgents());
     }
 
     //public double trueDistance(Node pos, int agentId) {

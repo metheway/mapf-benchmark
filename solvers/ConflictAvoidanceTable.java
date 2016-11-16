@@ -1,6 +1,7 @@
 package solvers;
 
 import solvers.astar.State;
+import solvers.independence_detection.IndependenceDetection;
 import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
 import utilities.Conflict;
@@ -8,31 +9,52 @@ import utilities.Coordinate;
 import utilities.Node;
 import utilities.Path;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConflictAvoidanceTable {
 
     public static final int NO_CONFLICT = -1;
     public static final int NO_GROUP = -1;
 
-    // coordinate => prev(s)
-    private Map<Coordinate, List<Coordinate>> coordinateTable;
-    // coordinate => group at coordinate
-    private Map<Coordinate, List<Integer>> groupOccupantTable;
+    protected int lastTimeStep;
 
-    private Map<Node, int[]> agentDestinations;
+    // coordinate => prev(s)
+    protected Map<Coordinate, List<Coordinate>> coordinateTable;
+    // coordinate => group at coordinate
+    protected Map<Coordinate, List<Integer>> groupOccupantTable;
+
+    protected Map<Node, int[]> agentDestinations;
+    protected List<Integer> relevantGroups;
+    protected Map<Integer, Integer> agentGroups;
+
     private static final int DEST_TIME_STEP = 0;
     private static final int DEST_GROUP = 1;
 
     private Conflict earliestConflict;
 
+    public ConflictAvoidanceTable(Map<Coordinate, List<Coordinate>> coordinateTable,
+                                  Map<Coordinate, List<Integer>> groupOccupantTable,
+                                  Map<Node, int[]> agentDestinations,
+                                  int lastTimeStep,
+                                  List<Integer> relevantGroups,
+                                  Map<Integer, Integer> agentGroups) {
+        this.coordinateTable = coordinateTable;
+        this.groupOccupantTable = groupOccupantTable;
+        this.agentDestinations = agentDestinations;
+        this.lastTimeStep = lastTimeStep;
+        this.relevantGroups = relevantGroups;
+        this.agentGroups = agentGroups;
+    }
+
+    public ConflictAvoidanceTable(Map<Coordinate, List<Coordinate>> coordinateTable,
+                                  Map<Coordinate, List<Integer>> groupOccupantTable,
+                                  Map<Node, int[]> agentDestinations,
+                                  int lastTimeStep) {
+        this(coordinateTable, groupOccupantTable, agentDestinations, lastTimeStep, new ArrayList<>(), new HashMap<>());
+    }
+
     public ConflictAvoidanceTable() {
-        coordinateTable = new HashMap<>();
-        groupOccupantTable = new HashMap<>();
-        agentDestinations = new HashMap<>();
+        this(new HashMap<>(), new HashMap<>(), new HashMap<>(), 0, new ArrayList<>(), new HashMap<>());
     }
 
     public boolean isValid(State state) {
@@ -58,12 +80,12 @@ public class ConflictAvoidanceTable {
         Coordinate prevCoordinate = state.isRoot() ?
                 null : ((SingleAgentState) state.predecessor()).coordinate();
 
-        int result = coordinateConflict(thisCoordinate);
+        int result = coordinateConflict(thisCoordinate, state.getAgentGoal());
         if (result == NO_CONFLICT) {
-            result = findTransposition(prevCoordinate, thisCoordinate);
+            result = findTransposition(prevCoordinate, thisCoordinate, state.getAgentGoal());
         }
         if (result == NO_CONFLICT) {
-            result = destinationConflict(thisCoordinate);
+            result = destinationConflict(thisCoordinate, state.getAgentGoal());
         }
         return result;
     }
@@ -82,15 +104,27 @@ public class ConflictAvoidanceTable {
         return result;
     }
 
-    private int findTransposition(Coordinate previous, Coordinate coordinate) {
+    private int findTransposition(Coordinate previous, Coordinate coordinate, int agentGoal) {
         int conflictingGroup = NO_CONFLICT;
         if (!(previous == null || coordinateTable.get(previous) == null)) {
             coordinate.setTimeStep(coordinate.getTimeStep() - 1);
             previous.setTimeStep(previous.getTimeStep() + 1);
             int index = coordinateTable.containsKey(previous) ?
                     coordinateTable.get(previous).indexOf(coordinate) : -1;
+            List<Coordinate> possibleTranspositions = new ArrayList<>();
             if (index != -1) {
-                conflictingGroup = groupOccupantTable.get(previous).get(index);
+                int len = coordinateTable.get(previous).size();
+                for (int i = index; i < len && conflictingGroup == NO_CONFLICT; i++) {
+                    Coordinate possibleConflictCoordinate = coordinateTable.get(previous).get(i);
+                    List<Integer> possibleConflicts = groupOccupantTable.get(possibleConflictCoordinate);
+                    Iterator<Integer> groupIter = possibleConflicts.iterator();
+                    while (groupIter.hasNext() && conflictingGroup == NO_CONFLICT) {
+                        int possibleConflict = groupIter.next();
+                        if (relevantGroups.contains(agentGroups.get(possibleConflict)) && possibleConflict != agentGoal) {
+                            conflictingGroup = possibleConflict;
+                        }
+                    }
+                }
             }
             coordinate.setTimeStep(coordinate.getTimeStep() + 1);
             previous.setTimeStep(previous.getTimeStep() - 1);
@@ -98,12 +132,21 @@ public class ConflictAvoidanceTable {
         return conflictingGroup;
     }
 
-    private int coordinateConflict(Coordinate coordinate) {
-        return groupOccupantTable.get(coordinate) == null ?
-                NO_CONFLICT : groupOccupantTable.get(coordinate).get(0);
+    private int coordinateConflict(Coordinate coordinate, int agentGoal) {
+        if (groupOccupantTable.get(coordinate) == null) {
+            return NO_CONFLICT;
+        }
+
+        for (Integer possibleConflict : groupOccupantTable.get(coordinate)) {
+            if (relevantGroups.contains(agentGroups.get(possibleConflict)) && possibleConflict != agentGoal) {
+                return possibleConflict;
+            }
+        }
+
+        return NO_CONFLICT;
     }
 
-    private int destinationConflict(Coordinate coordinate) {
+    private int destinationConflict(Coordinate coordinate, int agentGoal) {
         int conflictingGroup = NO_CONFLICT;
         Node node = coordinate.getNode();
         if (agentDestinations.containsKey(node)) {
@@ -112,20 +155,21 @@ public class ConflictAvoidanceTable {
                 conflictingGroup = data[DEST_GROUP];
             }
         }
-        return conflictingGroup;
+        boolean relevantConflict = relevantGroups.contains(agentGroups.get(conflictingGroup)) ;
+        return relevantConflict ? conflictingGroup : NO_CONFLICT;
     }
 
-    public void addPath(Path path, int group) {
+    public void addPath(Path path) {
         if (path.getLast() instanceof SingleAgentState) {
-            path.forEach(state -> addSingleAgentStateCoordinate((SingleAgentState) state, group));
+            path.forEach(state -> addSingleAgentStateCoordinate((SingleAgentState) state, ((SingleAgentState) state).getAgentGoal()));
             SingleAgentState finalState = (SingleAgentState) path.getLast();
-            addDestination(finalState.coordinate(), group);
+            addDestination(finalState.coordinate(), finalState.getAgentGoal());
         } else {
             path.forEach(state -> ((MultiAgentState) state).getSingleAgentStates()
-                    .forEach(singleAgentState -> addSingleAgentStateCoordinate(singleAgentState, group)));
+                    .forEach(singleAgentState -> addSingleAgentStateCoordinate(singleAgentState, singleAgentState.getAgentGoal())));
             MultiAgentState finalState = (MultiAgentState) path.getLast();
             finalState.getSingleAgentStates()
-                    .forEach(singleAgentState -> addDestination(singleAgentState.coordinate(), group));
+                    .forEach(singleAgentState -> addDestination(singleAgentState.coordinate(), singleAgentState.getAgentGoal()));
         }
     }
 
@@ -139,11 +183,7 @@ public class ConflictAvoidanceTable {
     public Conflict simulatePath(Path path, int group) {
         Conflict result = earliestConflict;
 
-        int endTime = earliestConflict != null ?
-                earliestConflict.getTimeStep() : path.size();
-
-        final int TIME_LIMIT = Math.min(endTime, path.size());
-        for (int time = 0; time < TIME_LIMIT && result == earliestConflict; time++) {
+        for (int time = 0; time < path.size() && result == earliestConflict; time++) {
             MultiAgentState multiAgentState = (MultiAgentState) path.get(time);
             int violation = violation(multiAgentState);
             if (violation != NO_CONFLICT) {
@@ -249,6 +289,51 @@ public class ConflictAvoidanceTable {
 
     public Map<Coordinate, List<Coordinate>> getCoordinateTable() {
         return coordinateTable;
+    }
+
+    public void setRelevantGroups(List<Integer> relevantGroups) {
+        this.relevantGroups = relevantGroups;
+    }
+
+    public void setAgentGroups(Map<Integer, Integer> agentGroups) {
+        this.agentGroups = agentGroups;
+    }
+
+    public Map<Integer, Integer> getAgentGroups() {
+        return agentGroups;
+    }
+
+    public List<Integer> getRelevantGroups() {
+        return relevantGroups;
+    }
+
+    public ConflictAvoidanceTable deepCopy() {
+        // deep copy of coordinate table
+        Map<Coordinate, List<Coordinate>> newCoordinateTable = new HashMap<>();
+        System.out.println("copying coordinate table");
+        for (Coordinate key : getCoordinateTable().keySet()) {
+            List<Coordinate> val = getCoordinateTable().get(key);
+            newCoordinateTable.put(key, new ArrayList<>(val));
+        }
+
+        //deep copy of group table
+        Map<Coordinate, List<Integer>> newGroupTable = new HashMap<>();
+        System.out.println("copying group mapping");
+        for (Coordinate key : getGroupOccupantTable().keySet()) {
+            List<Integer> val = getGroupOccupantTable().get(key);
+            newGroupTable.put(key, new ArrayList<>(val));
+        }
+
+        // deep copy of agent destinations
+        Map<Node, int[]> newAgentDestinations = new HashMap<>();
+        System.out.println("copying agent destinations");
+        for (Node key: getAgentDestinations().keySet()) {
+            int val[] = getAgentDestinations().get(key);
+            newAgentDestinations.put(key, new int[] {val[0], val[1]});
+        }
+
+        return new ConflictAvoidanceTable(newCoordinateTable, newGroupTable, newAgentDestinations, lastTimeStep);
+
     }
 
     public void clear() {

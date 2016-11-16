@@ -19,14 +19,14 @@ public class SingleAgentAStar extends MultiAgentAStar {
      * Constructor that creates a solver object that uses the
      * basic A* algorithm to solve problem instances
      */
-    public SingleAgentAStar() { super(CostFunction.SUM_OF_COSTS); }
+    public SingleAgentAStar() { this(null, -1); }
 
-    public SingleAgentAStar(ConstrainedSolver highLevel) {
-        super(CostFunction.SUM_OF_COSTS, highLevel);
+    public SingleAgentAStar(ConstrainedSolver highLevel, int groupToSolve) {
+        super(CostFunction.SUM_OF_COSTS, highLevel, groupToSolve);
     }
 
     public SingleAgentAStar(HashMap<Keys, Object> params) {
-        super(params, CostFunction.SUM_OF_COSTS);
+        super(CostFunction.SUM_OF_COSTS);
     }
 
     public State createRoot(ProblemInstance problemInstance) {
