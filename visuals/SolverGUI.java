@@ -33,6 +33,8 @@ public class SolverGUI {
     private JButton loadButton;
     private JRadioButton fourConnectedRadioButton;
     private JRadioButton eightConnectedRadioButton;
+    private JPanel mapPreview;
+    private JTextField textField1;
 
     public SolverGUI() {
         populateList(chooseFrom);
@@ -133,6 +135,12 @@ public class SolverGUI {
             }
         });
 
+        loadButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+            }
+        });
     }
 
     public static void main(String[] args) {

@@ -27,6 +27,7 @@ public class ProblemInstance {
 	public ProblemInstance(Graph gr, File agentsFile){
 		agents = deserializeAgents(agentsFile);
         graph = gr;
+		goalPositions = agentGoals();
         if (!mapTitle.equals(graph.getMapTitle()))
             throw new IllegalArgumentException("Map " + mapTitle + " not compatible with problem instance!\n " +
                                                 "Expected " + graph.getMapTitle());
@@ -74,6 +75,18 @@ public class ProblemInstance {
         this.agents = current;
 		updateGoalPositions();
     }
+
+	public void addRandomAgents(int nAgents) {
+		List<Agent> newAgents =  graph.generateRandomAgents(nAgents);
+		for (Agent agent : agents)
+			newAgents.add(agent);
+		while (duplicateGoalsOrStarts(newAgents)) {
+			newAgents = graph.generateRandomAgents(nAgents);
+			for (Agent agent : agents)
+				newAgents.add(agent);
+		}
+		agents = newAgents;
+	}
 
     /**
      * Returns a problem instance that
@@ -147,7 +160,7 @@ public class ProblemInstance {
 			for (Agent a : agents)
 				objectOut.writeObject(a);
 			fileOut.close();
-		} 
+		}
 		catch (IOException e) {
 			e.printStackTrace();
 		}

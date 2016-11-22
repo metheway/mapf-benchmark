@@ -1,7 +1,6 @@
 package visuals;
 
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.*;
 
 import javax.swing.JPanel;
 
@@ -38,9 +37,25 @@ public class MapPanel extends JPanel {
 	
 	public void paintCell(Graphics g, int index) {
 		int bufferedWidth = map.getWidth() + 2;
-		int x = -tileSize + tileSize * (index%bufferedWidth);
-		int y = -tileSize + tileSize * (index/bufferedWidth);
+		int x = tileSize * (index%bufferedWidth);
+		int y = tileSize * (index/bufferedWidth);
+		System.out.println("Index: " + index + ", x: " + x + ", y: " + y + ", buffered width: " + bufferedWidth);
 		g.fillRect(x,y,tileSize,tileSize);
+	}
+
+	public Point getCellCenter(int index) {
+		int bufferedWidth = map.getWidth() + 2;
+		int x = tileSize * (index%bufferedWidth);
+		int y = tileSize * (index/bufferedWidth);
+		return new Point(x + tileSize/2, y + tileSize/2);
+	}
+
+	public int getIndexOfPoint(Point point) {
+		int adjustedX = point.x - (point.x % tileSize);
+		int adjustedY = point.y - (point.y % tileSize);
+		int bufferedWidth = map.getWidth() + 2;
+		int index = (adjustedX/tileSize) + ((adjustedY/tileSize)*bufferedWidth);
+		return index;
 	}
 	
 	public Color tileColor(char tile) {
@@ -52,5 +67,4 @@ public class MapPanel extends JPanel {
 		
 		else return Color.BLACK;
 	}
-	
 }
