@@ -8,6 +8,7 @@ import java.util.Set;
 
 import constants.CostFunction;
 import solvers.ConflictAvoidanceTable;
+import solvers.MultiLevelCAT;
 import solvers.astar.State;
 import solvers.astar.TDHeuristic;
 import utilities.Agent;
@@ -63,7 +64,7 @@ public class MultiAgentState extends State {
         return neighbors;
     }
 
-    public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
+    public void updateCATViolations(MultiLevelCAT conflictAvoidanceTable) {
         this.conflictViolations = 0;
         for (SingleAgentState singleAgentState : getSingleAgentStates()) {
             singleAgentState.updateCATViolations(conflictAvoidanceTable);

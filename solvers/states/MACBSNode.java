@@ -2,6 +2,7 @@ package solvers.states;
 
 import solvers.ConflictAvoidanceTable;
 import solvers.ConstrainedSolver;
+import solvers.MultiLevelCAT;
 import solvers.astar.MultiAgentAStar;
 import solvers.astar.State;
 import solvers.astar.TDHeuristic;
@@ -151,7 +152,7 @@ public class MACBSNode extends State {
         return result;
     }
 
-    public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
+    public void updateCATViolations(MultiLevelCAT conflictAvoidanceTable) {
         throw new NoSuchMethodError("CAT violations not recorded in CBSNode");
     }
 

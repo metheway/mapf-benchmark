@@ -110,6 +110,7 @@ public abstract class GenericAStar extends ConstrainedSolver {
      * Reset the open and closed lists to solve a new problem of the same type.
      */
     protected void init(ProblemInstance problem) {
+        getConflictAvoidanceTable().addLevel();
     	goal = null;
         this.problemInstance = problem;
     	openList.clear();

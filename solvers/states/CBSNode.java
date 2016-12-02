@@ -3,6 +3,7 @@ package solvers.states;
 import constants.Keys;
 import solvers.ConflictAvoidanceTable;
 import solvers.ConstrainedSolver;
+import solvers.MultiLevelCAT;
 import solvers.astar.GenericAStar;
 import solvers.astar.State;
 import solvers.astar.TDHeuristic;
@@ -75,7 +76,7 @@ public class CBSNode extends State {
         return fromState;
     }
 
-    public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
+    public void updateCATViolations(MultiLevelCAT conflictAvoidanceTable) {
         throw new NoSuchMethodError("CAT violations not recorded in CBSNode");
     }
 

@@ -5,7 +5,7 @@ import solvers.astar.TDHeuristic;
 public abstract class ConstrainedSolver implements Solver {
 
     private Reservation reservation;
-    private ConflictAvoidanceTable conflictAvoidanceTable;
+    private MultiLevelCAT conflictAvoidanceTable;
     private ConstrainedSolver parentSolver;
     private int groupToSolve;
 
@@ -17,8 +17,7 @@ public abstract class ConstrainedSolver implements Solver {
 
     public ConstrainedSolver(ConstrainedSolver parentSolver, int groupToSolve) {
         this.parentSolver = parentSolver;
-        this.conflictAvoidanceTable = parentSolver == null ? new ConflictAvoidanceTable() :
-                                                             parentSolver.getConflictAvoidanceTable().deepCopy();
+        this.conflictAvoidanceTable = parentSolver == null ? new MultiLevelCAT() : parentSolver.getConflictAvoidanceTable();
         this.reservation = parentSolver == null ? new Reservation() :
                                                   parentSolver.getReservation().deepCopy();
         this.groupToSolve = groupToSolve;
@@ -28,7 +27,7 @@ public abstract class ConstrainedSolver implements Solver {
         return reservation;
     }
 
-    public ConflictAvoidanceTable getConflictAvoidanceTable() {
+    public MultiLevelCAT getConflictAvoidanceTable() {
         return conflictAvoidanceTable;
     }
 
@@ -36,7 +35,7 @@ public abstract class ConstrainedSolver implements Solver {
         return parentSolver;
     }
 
-    public void setConflictAvoidanceTable(ConflictAvoidanceTable conflictAvoidanceTable) {
+    public void setConflictAvoidanceTable(MultiLevelCAT conflictAvoidanceTable) {
         this.conflictAvoidanceTable = conflictAvoidanceTable;
     }
 

@@ -88,5 +88,9 @@ public class MultiLevelCAT {
         return catList.get(catList.size() - 1).getRelevantGroups();
     }
 
+    public void clear() {
+        catList.get(catList.size() - 1).clear();
+    }
+
 
 }

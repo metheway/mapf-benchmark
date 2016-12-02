@@ -3,6 +3,7 @@ package solvers.astar;
 import java.util.List;
 
 import solvers.ConflictAvoidanceTable;
+import solvers.MultiLevelCAT;
 import utilities.ProblemInstance;
 
 public abstract class State implements Comparable<State> {
@@ -58,7 +59,7 @@ public abstract class State implements Comparable<State> {
      * Update the number of CAT violations this state
      * has incurred.
      */
-    protected abstract void updateCATViolations(ConflictAvoidanceTable cat);
+    protected abstract void updateCATViolations(MultiLevelCAT cat);
 
     /**
      * Returns the number of conflict violations this state has incurred

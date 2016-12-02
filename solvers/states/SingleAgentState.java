@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import constants.Positions;
 import solvers.ConflictAvoidanceTable;
+import solvers.MultiLevelCAT;
 import solvers.astar.TDHeuristic;
 import utilities.Agent;
 import utilities.Node;
@@ -93,7 +94,7 @@ public class SingleAgentState extends State {
         return neighbors;
     }
 
-    public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
+    public void updateCATViolations(MultiLevelCAT conflictAvoidanceTable) {
         if (conflictAvoidanceTable.violation(this) != ConflictAvoidanceTable.NO_CONFLICT) {
             ++this.conflictViolations;
         }
