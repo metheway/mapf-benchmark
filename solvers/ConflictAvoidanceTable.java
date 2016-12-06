@@ -336,6 +336,10 @@ public class ConflictAvoidanceTable {
 
     }
 
+    public int getLastTimeStep() {
+        return lastTimeStep;
+    }
+
     public void clear() {
         coordinateTable = new HashMap<>();
         groupOccupantTable = new HashMap<>();
