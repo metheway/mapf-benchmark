@@ -21,7 +21,7 @@ import utilities.ProblemInstance;
 public class MultiAgentState extends State {
 
     private CostFunction costFunction;
-    private List<SingleAgentState> singleStates;
+    protected List<SingleAgentState> singleStates;
 
     /**
      * Constructor that creates a multi-agent state with the specified back pointer,
@@ -59,13 +59,6 @@ public class MultiAgentState extends State {
         List<State> answer = new ArrayList<>();
         generateNeighbors(problem, 0, new ArrayList<SingleAgentState>(), answer);
         return answer;
-
-//        List<State> neighbors = new ArrayList<>();
-//        List<List<SingleAgentState>> lists = generateNeighbors(problem);
-//        for (List<SingleAgentState> list : lists) {
-//            neighbors.add(new MultiAgentState(this, costFunction, list, problem));
-//        }
-//        return neighbors;
     }
 
     public void updateCATViolations(MultiLevelCAT conflictAvoidanceTable) {
@@ -101,15 +94,24 @@ public class MultiAgentState extends State {
         for(State move : currentMoves) {
             // If move does not conflict with any previous assigned moves in current branch then:
             if (isLegalMove(currentBranch, (SingleAgentState)move)) {
-                // add this move to the current branch and call
-                currentBranch.add((SingleAgentState)move);
-                //recursive call
-                generateNeighbors(problem, agentIndex+1, currentBranch, answer);
-                //remove last entry in the branch
-                currentBranch.remove(currentBranch.size() - 1);
+                if (shouldContinue(current, move)) {
+                    // add this move to the current branch and call
+                    currentBranch.add((SingleAgentState) move);
+                    //recursive call
+                    generateNeighbors(problem, agentIndex + 1, currentBranch, answer);
+                    //remove last entry in the branch
+                    currentBranch.remove(currentBranch.size() - 1);
+                    revert(current, move);
+                }
             }
         }
     }
+
+    protected boolean shouldContinue(State current, State next){
+        return true;
+    }
+
+    protected void revert(State current, State next){}
 
     private boolean isLegalMove(List<SingleAgentState> currentBranch, SingleAgentState state){
         for(SingleAgentState other : currentBranch){
