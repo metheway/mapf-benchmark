@@ -137,7 +137,7 @@ public class SolutionViewerVisual {
 //        }
 
         graph = new Graph(Connected.EIGHT, new ProblemMap(new File("src/maps/arena.map")));
-        problemInstance = new ProblemInstance(graph, new File("src/problems/test_problem.bin"));
+        problemInstance = new ProblemInstance(graph, new File("src/problems/prob_test.prob"));
         solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
         if (solver.solve(problemInstance)) {
             System.out.println("Successfully Solved");

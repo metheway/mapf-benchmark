@@ -2,6 +2,7 @@ package solvers.cbs;
 
 import constants.CostFunction;
 import solvers.ConflictAvoidanceTable;
+import solvers.ConstrainedSolver;
 import solvers.Solver;
 import solvers.astar.GenericAStar;
 import solvers.astar.MultiAgentAStar;
@@ -38,7 +39,7 @@ solver:
 
  */
 
-public class ConflictBasedSearch implements Solver {
+public class ConflictBasedSearch extends ConstrainedSolver {
 
     private List<GenericAStar> solvers;
     private State goal;
@@ -52,7 +53,7 @@ public class ConflictBasedSearch implements Solver {
     }
 
     @Override
-    public boolean solve(ProblemInstance problemInstance) {
+    public boolean subSolve(ProblemInstance problemInstance) {
         init(problemInstance);
 
         CBSNode root = new CBSNode(problemInstance, solvers);

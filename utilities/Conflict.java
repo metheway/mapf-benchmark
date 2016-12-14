@@ -1,9 +1,12 @@
 package utilities;
 
+import constants.ConflictType;
+
 /**
  * Wrapper for conflict information
  * used in some solvers
  */
+
 public class Conflict {
 
     private int timeStep;
@@ -11,6 +14,7 @@ public class Conflict {
     private int group2;
     private Node group1Node;
     private Node group2Node;
+    private ConflictType type;
 
     /**
      * Constructor that creates a conflict object
@@ -20,15 +24,24 @@ public class Conflict {
      * @param group2 the index of the second group of agents
      */
     public Conflict(int timeStep, int group1, int group2) {
-        this(timeStep, group1, group2, null, null);
+        this(timeStep, group1, group2, null, null, null);
     }
 
-    public Conflict(int timeStep, int group1, int group2, Node group1Node, Node group2Node) {
+    public Conflict(int timeStep, int group1, int group2, Node group1Node, Node group2Node, ConflictType type) {
         this.timeStep = timeStep;
         this.group1 = group1;
         this.group2 = group2;
         this.group1Node = group1Node;
         this.group2Node = group2Node;
+        this.type = type;
+    }
+
+    /**
+     * Set the type of the conflict
+     * @param type the type of the conflict
+     */
+    public void setType(ConflictType type) {
+        this.type = type;
     }
 
     /**
