@@ -4,6 +4,7 @@ import java.util.*;
 
 import constants.Keys;
 import solvers.ConstrainedSolver;
+import solvers.MultiLevelReservation;
 import solvers.Reservation;
 import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
@@ -61,6 +62,8 @@ public abstract class GenericAStar extends ConstrainedSolver {
             current = openList.remove();
             if (isGoal(problem, current) && current.timeStep() >= getReservation().getLastTimeStep()) {
                 goal = current;
+                getConflictAvoidanceTable().removeLevel();
+                getReservation().removeLevel();
                 return true;
             }
             List<State> neighbors = current.expand(problem);
@@ -111,12 +114,13 @@ public abstract class GenericAStar extends ConstrainedSolver {
      */
     protected void init(ProblemInstance problem) {
         getConflictAvoidanceTable().addLevel();
+        getReservation().addLevel();
     	goal = null;
         this.problemInstance = problem;
     	openList.clear();
         closedList = new StateClosedList();
         if (params.get(Keys.RESERVATIONS) != null)
-            setReservation((Reservation) params.get(Keys.RESERVATIONS));
+            setReservation((MultiLevelReservation) params.get(Keys.RESERVATIONS));
     }
 
     protected boolean isGoal(ProblemInstance p, State s) {

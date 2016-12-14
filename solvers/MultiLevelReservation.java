@@ -8,6 +8,7 @@ import utilities.Node;
 import utilities.Path;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -34,13 +35,19 @@ public class MultiLevelReservation {
      * @return the first violation found
      */
     public int violation(SingleAgentState state) {
-        for (ConflictAvoidanceTable cat : reservationList) {
-            int violation = cat.violation(state);
-            if (violation != ConflictAvoidanceTable.NO_CONFLICT) return violation;
-        }
-        return ConflictAvoidanceTable.NO_CONFLICT;
+        return reservationList.get(reservationList.size() - 1).violation(state);
     }
 
+    public int totalViolations(SingleAgentState state) {
+        List<Integer> violations = new ArrayList<>();
+        for (ConflictAvoidanceTable conflictAvoidanceTable : reservationList) {
+            int violation = conflictAvoidanceTable.violation(state);
+            if (!violations.contains(violation) && violation != ConflictAvoidanceTable.NO_CONFLICT) {
+                violations.add(violation);
+            }
+        }
+        return violations.size();
+    }
 
     public void reserveCoordinate(Coordinate coordinate, Coordinate previous) {
         reservationList.get(reservationList.size() - 1).reserveCoordinate(coordinate, previous);
@@ -67,7 +74,12 @@ public class MultiLevelReservation {
     }
 
     public boolean isValid(State state) {
-        return reservationList.get(reservationList.size() - 1).isValid(state);
+        boolean valid = true;
+        Iterator<Reservation> reservationIterator = reservationList.iterator();
+        while (valid && reservationIterator.hasNext()) {
+            valid &= reservationIterator.next().isValid(state);
+        }
+        return valid;
     }
 
     public Map<Node, int[]> getAgentDestinations() {

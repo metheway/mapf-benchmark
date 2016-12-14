@@ -36,16 +36,23 @@ public class MultiLevelCAT {
     }
 
     /**
-     * Return the first violation found in any level
+     * Return the first violation found at the lowest level
      * @param state state to check
      * @return the first violation found
      */
     public int violation(SingleAgentState state) {
-        for (ConflictAvoidanceTable cat : catList) {
-            int violation = cat.violation(state);
-            if (violation != ConflictAvoidanceTable.NO_CONFLICT) return violation;
+        return catList.get(catList.size() - 1).violation(state);
+    }
+
+    public int totalViolations(SingleAgentState state) {
+        List<Integer> violations = new ArrayList<>();
+        for (ConflictAvoidanceTable conflictAvoidanceTable : catList) {
+            int violation = conflictAvoidanceTable.violation(state);
+            if (!violations.contains(violation) && violation != ConflictAvoidanceTable.NO_CONFLICT) {
+                violations.add(violation);
+            }
         }
-        return ConflictAvoidanceTable.NO_CONFLICT;
+        return violations.size();
     }
 
     public void addPath(Path path) {

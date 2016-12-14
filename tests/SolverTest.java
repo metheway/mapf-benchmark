@@ -60,6 +60,7 @@ public class SolverTest {
         } else {
             System.out.println("Failure");
         }
+        solver.getConflictAvoidanceTable().addLevel();
         solver.getConflictAvoidanceTable().addPath(solver.getPath());
         System.out.println(solver.getConflictAvoidanceTable());
         Map<Integer, Integer> agentMap = new HashMap<>();
@@ -69,8 +70,11 @@ public class SolverTest {
         System.out.println(agentMap);
         solver.getConflictAvoidanceTable().setAgentGroups(agentMap);
         solver.getConflictAvoidanceTable().setRelevantGroups(Arrays.asList(0, 1, 2));
+        System.out.println(solver.getConflictAvoidanceTable().getGroupOccupantTable());
         System.out.println(solver.getConflictAvoidanceTable().getAgentGroups().get(4));
-        System.out.println("should be false: " + solver.getConflictAvoidanceTable().isValid(new SingleAgentState(2, problemInstance)));
+        SingleAgentState singleAgentState = new SingleAgentState(2, problemInstance);
+        System.out.println(singleAgentState.coordinate());
+        System.out.println("should be true: " + solver.getConflictAvoidanceTable().isValid(singleAgentState));
         System.out.println();
 
 	}
@@ -164,6 +168,8 @@ public class SolverTest {
         ProblemInstance toy = new ProblemInstance(new Graph(Connected.EIGHT, map), Collections.singletonList(new Agent(0, 1, 0)));
         ConstrainedSolver maAStar = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
         maAStar.solve(toy);
+        maAStar.getConflictAvoidanceTable().addLevel();
+        maAStar.getReservation().addLevel();
         maAStar.getConflictAvoidanceTable().addPath(maAStar.getPath());
         maAStar.getReservation().addPath(maAStar.getPath());
         System.out.println(maAStar.getConflictAvoidanceTable());

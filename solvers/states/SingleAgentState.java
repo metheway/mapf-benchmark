@@ -95,9 +95,7 @@ public class SingleAgentState extends State {
     }
 
     public void updateCATViolations(MultiLevelCAT conflictAvoidanceTable) {
-        if (conflictAvoidanceTable.violation(this) != ConflictAvoidanceTable.NO_CONFLICT) {
-            ++this.conflictViolations;
-        }
+        this.conflictViolations += conflictAvoidanceTable.totalViolations(this);
     }
 
     /**
@@ -117,7 +115,7 @@ public class SingleAgentState extends State {
     private SingleAgentState waitState(ProblemInstance problem) {
         return new SingleAgentState(agentId, coord.getNode(), this, problem);
     }
-    
+
 
     /**
      * Helper method to generate costs in the expand() method
