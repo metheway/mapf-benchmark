@@ -1,6 +1,7 @@
 package solvers;
 
 import solvers.astar.TDHeuristic;
+import utilities.ProblemInstance;
 
 public abstract class ConstrainedSolver implements Solver {
 
@@ -38,6 +39,17 @@ public abstract class ConstrainedSolver implements Solver {
     public void setConflictAvoidanceTable(MultiLevelCAT conflictAvoidanceTable) {
         this.conflictAvoidanceTable = conflictAvoidanceTable;
     }
+
+    public boolean solve(ProblemInstance problemInstance) {
+        conflictAvoidanceTable.addLevel();
+        reservation.addLevel();
+        boolean solved = subSolve(problemInstance);
+        conflictAvoidanceTable.removeLevel();
+        reservation.removeLevel();
+        return solved;
+    }
+
+    public abstract boolean subSolve(ProblemInstance problemInstance);
 
     public void setReservation(MultiLevelReservation reservation) {
         this.reservation = reservation;

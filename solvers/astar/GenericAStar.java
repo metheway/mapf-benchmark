@@ -52,7 +52,7 @@ public abstract class GenericAStar extends ConstrainedSolver {
      * Solves the search problem specified by the root state
      * @return true if the goal was reached, false otherwise
      */
-    public boolean solve(ProblemInstance problem) {
+    public boolean subSolve(ProblemInstance problem) {
         init(problem);
         State current = createRoot(problem);
         setStateHeuristic(current);
@@ -62,8 +62,6 @@ public abstract class GenericAStar extends ConstrainedSolver {
             current = openList.remove();
             if (isGoal(problem, current) && current.timeStep() >= getReservation().getLastTimeStep()) {
                 goal = current;
-                getConflictAvoidanceTable().removeLevel();
-                getReservation().removeLevel();
                 return true;
             }
             List<State> neighbors = current.expand(problem);
@@ -113,8 +111,6 @@ public abstract class GenericAStar extends ConstrainedSolver {
      * Reset the open and closed lists to solve a new problem of the same type.
      */
     protected void init(ProblemInstance problem) {
-        getConflictAvoidanceTable().addLevel();
-        getReservation().addLevel();
     	goal = null;
         this.problemInstance = problem;
     	openList.clear();

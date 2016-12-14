@@ -29,12 +29,8 @@ public class CAStar extends ConstrainedSolver {
     private List<Path> paths;
     private ProblemInstance problemInstance;
 
-	public CAStar() {
-
-	}
-
     @Override
-    public boolean solve(ProblemInstance problem) {
+    public boolean subSolve(ProblemInstance problem) {
         this.problemInstance = problem;
         init();
         List<Agent> agents = problem.getAgents();

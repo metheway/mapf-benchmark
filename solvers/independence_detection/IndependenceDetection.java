@@ -25,7 +25,7 @@ public class IndependenceDetection extends ConstrainedSolver {
     }
 
     @Override
-    public boolean solve(ProblemInstance problemInstance) {
+    public boolean subSolve(ProblemInstance problemInstance) {
 
         // initialize a set of multiagent problems
         // for each agent in each problem instance, make a new problem and insert it into the set
