@@ -12,6 +12,7 @@ import constants.Terrain;
 public class ProblemMap {
 	
 	private String mapType;
+	private String mapTitle;
 	private int height;
 	private int width;
 	private String content;
@@ -27,6 +28,7 @@ public class ProblemMap {
      */
     public ProblemMap(double obstacleProbability, int height, int width) {
 		mapType = "rand";
+		mapTitle = "random_map";
 		this.height = height;
 		this.width = width;
 		generateMap(obstacleProbability);
@@ -39,12 +41,17 @@ public class ProblemMap {
      * @throws FileNotFoundException
      */
 	public ProblemMap(File mapFile) throws FileNotFoundException{
+		mapTitle = parseMapTitle(mapFile.getAbsolutePath());
 		Scanner mapScanner = new Scanner(mapFile);
 		mapScanner.next(); mapType = mapScanner.next();
 		mapScanner.next(); height = mapScanner.nextInt();
 		mapScanner.next(); width = mapScanner.nextInt();
 		mapScanner.next();
 		parse(mapScanner);
+	}
+
+	private String parseMapTitle(String path) {
+		return path.substring(path.lastIndexOf('/') + 1);
 	}
 
 	// returns the map
@@ -78,6 +85,12 @@ public class ProblemMap {
 	public String getMapType() {
 		return mapType;
 	}
+
+	/**
+	 * Returns the title of the map
+	 * @return Returns the title of the map
+     */
+	public String getMapTitle() { return mapTitle; }
 
     /**
      * Returns the height of the map

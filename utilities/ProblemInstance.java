@@ -1,29 +1,24 @@
 package utilities;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OptionalDataException;
 
 public class ProblemInstance {
 	private Graph graph;
 	private List<Agent> agents;
 	private List<Node> goalPositions;
+
     private String mapTitle;
+	private Connected connectedness;
 
 	/**
 	 * Constructor that creates a problem instance using the given
      * graph, with agents from a file of serialized agents
 	 * @param agentsFile The file with serialized agent objects
 	 */
+	// This constructor is deprecated and should not be used
+	@Deprecated
 	public ProblemInstance(Graph gr, File agentsFile){
 		agents = deserializeAgents(agentsFile);
         graph = gr;
@@ -31,6 +26,19 @@ public class ProblemInstance {
         if (!mapTitle.equals(graph.getMapTitle()))
             throw new IllegalArgumentException("Map " + mapTitle + " not compatible with problem instance!\n " +
                                                 "Expected " + graph.getMapTitle());
+	}
+
+	/**
+	 * Constructor that creates a problem instance using the given problem File.
+	 * File contains agent data, map title, and connectedness
+	 * @param problem_file
+	 * @throws FileNotFoundException
+     */
+	public ProblemInstance(File problem_file) throws FileNotFoundException {
+		// Pull the agents and map title out of the file
+		agents = deserializeAgents(problem_file);
+		graph = new Graph(connectedness, new ProblemMap(new File("src/maps/" + mapTitle)));
+		goalPositions = agentGoals();
 	}
 
     /**
@@ -156,6 +164,7 @@ public class ProblemInstance {
 			FileOutputStream fileOut = new FileOutputStream(path + fileName + ".bin");
 			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
             objectOut.writeObject(graph.getMapTitle());
+			objectOut.writeObject(graph.getConnectedness());
 			objectOut.writeObject(agents.size());
 			for (Agent a : agents)
 				objectOut.writeObject(a);
@@ -174,6 +183,7 @@ public class ProblemInstance {
 			BufferedInputStream buffer = new BufferedInputStream(fileIn);
 			ObjectInputStream objectIn = new ObjectInputStream(buffer);
             mapTitle = (String) objectIn.readObject();
+			connectedness = (Connected) objectIn.readObject();
             numAgents = (Integer) objectIn.readObject();
 
             for (int i = 0; i < numAgents; i++)
