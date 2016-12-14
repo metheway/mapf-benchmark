@@ -69,7 +69,7 @@ public class SolverTest {
         }
         System.out.println(agentMap);
         solver.getConflictAvoidanceTable().setAgentGroups(agentMap);
-        solver.getConflictAvoidanceTable().setRelevantGroups(Arrays.asList(0, 1, 2));
+        //solver.getConflictAvoidanceTable().setRelevantGroups(Arrays.asList(0, 1, 2));
         System.out.println(solver.getConflictAvoidanceTable().getGroupOccupantTable());
         System.out.println(solver.getConflictAvoidanceTable().getAgentGroups().get(4));
         SingleAgentState singleAgentState = new SingleAgentState(2, problemInstance);

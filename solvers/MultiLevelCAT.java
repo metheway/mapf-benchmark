@@ -79,9 +79,9 @@ public class MultiLevelCAT {
         return catList.get(catList.size() - 1).getCoordinateTable();
     }
 
-    public void setRelevantGroups(List<Integer> relevantGroups) {
-        catList.get(catList.size() - 1).setRelevantGroups(relevantGroups);
-    }
+    //public void setRelevantGroups(List<Integer> relevantGroups) {
+    //    catList.get(catList.size() - 1).setRelevantGroups(relevantGroups);
+    //}
 
     public void setAgentGroups(Map<Integer, Integer> agentGroups) {
         catList.get(catList.size() - 1).setAgentGroups(agentGroups);
@@ -91,9 +91,9 @@ public class MultiLevelCAT {
         return catList.get(catList.size() - 1).getAgentGroups();
     }
 
-    public List<Integer> getRelevantGroups() {
-        return catList.get(catList.size() - 1).getRelevantGroups();
-    }
+    //public List<Integer> getRelevantGroups() {
+    //    return catList.get(catList.size() - 1).getRelevantGroups();
+    //}
 
     public void clear() {
         catList.get(catList.size() - 1).clear();
