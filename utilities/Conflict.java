@@ -87,7 +87,7 @@ public class Conflict {
 
     @Override
     public String toString() {
-        return "g1: " + getGroup1() + ", g2: " + getGroup2() + ", t: " + getTimeStep();
+        return "g1: " + getGroup1() + ", g2: " + getGroup2() + ", time: " + getTimeStep() + ", type: " + type.name();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package solvers;
 
+import constants.ConflictType;
 import solvers.astar.State;
 import solvers.independence_detection.IndependenceDetection;
 import solvers.states.MultiAgentState;
@@ -218,7 +219,8 @@ public class ConflictAvoidanceTable {
                                                 group,
                                                 otherGroup,
                                                 coordinate.getNode(),
-                                                coordinate.getNode());
+                                                coordinate.getNode(),
+                                                ConflictType.COLLISION);
             boolean earlier = earliestConflict == null
                             || newConflict.getTimeStep() < earliestConflict.getTimeStep();
             updatedConflict = earlier ? newConflict : earliestConflict;
@@ -242,7 +244,8 @@ public class ConflictAvoidanceTable {
                                                         i,
                                                         group,
                                                         coordinate.getNode(),
-                                                        prev.getNode());
+                                                        prev.getNode(),
+                                                        ConflictType.TRANSPOSITION);
                     }
                 }
             }
@@ -260,7 +263,8 @@ public class ConflictAvoidanceTable {
                                         destData[DEST_GROUP],
                                         group,
                                         coordinate.getNode(),
-                                        coordinate.getNode());
+                                        coordinate.getNode(),
+                                        ConflictType.DESTINATION);
                 }
             }
         }
