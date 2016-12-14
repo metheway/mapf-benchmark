@@ -1,5 +1,6 @@
 package utilities;
 
+import solvers.MultiLevelReservation;
 import solvers.Reservation;
 import solvers.astar.State;
 import solvers.states.MultiAgentState;
@@ -17,14 +18,14 @@ public class CoordinateClosedList implements IClosedList{
     private static final int PERMANENT = -1; // denotes reserved locations regardless of time step
 
     private Map<Coordinate, Double> map;
-    private Reservation reservation;
+    private MultiLevelReservation reservation;
 
     /**
      * Constructor that creates an empty closed list given
      * a reservation
      * @param reservation the reservation
      */
-    public CoordinateClosedList(Reservation reservation) {
+    public CoordinateClosedList(MultiLevelReservation reservation) {
         this.reservation = reservation;
         map = new HashMap<>();
     }

@@ -3,6 +3,7 @@ package solvers.states;
 import constants.Keys;
 import solvers.ConflictAvoidanceTable;
 import solvers.ConstrainedSolver;
+import solvers.MultiLevelCAT;
 import solvers.astar.GenericAStar;
 import solvers.astar.State;
 import solvers.astar.TDHeuristic;
@@ -33,9 +34,8 @@ public class CBSNode extends State {
         for (int agent = 0; agent < problemInstance.getAgents().size(); agent++) {
             solveSingleton(solvers.get(agent), problemInstance, agent);
             solvers.get(agent).addParam(Keys.PREPROCESS, false);
-            solutions.add(
-                    consistent ? solvers.get(agent).getPath() : null
-            );
+            Path newPath = consistent ? solvers.get(agent).getPath() : null;
+            solutions.add(newPath);
         }
         calculateCost(IRRELEVANT);
     }
@@ -53,6 +53,7 @@ public class CBSNode extends State {
         CBSConstraint constraint1 = new CBSConstraint(conflict.getGroup1(), conflictCoordinate1, conflictPrev1);
         CBSConstraint constraint2 = new CBSConstraint(conflict.getGroup2(), conflictCoordinate2, conflictPrev2);
 
+        //System.out.println(constraint1 + " " + constraint2);
         neighbors.add(new CBSNode(this, constraint1));
         neighbors.add(new CBSNode(this, constraint2));
 
@@ -75,17 +76,26 @@ public class CBSNode extends State {
         return fromState;
     }
 
-    public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
-
+    public void updateCATViolations(MultiLevelCAT conflictAvoidanceTable) {
+        throw new NoSuchMethodError("CAT violations not recorded in CBSNode");
     }
 
     public void replan(GenericAStar solver, ProblemInstance problemInstance) {
         populateConstraints();
         solver.getReservation().clear();
+        solver.getConflictAvoidanceTable().clear();
+
         for (Coordinate coordinate : constraints.keySet()) {
             solver.getReservation().reserveCoordinate(
                     coordinate, constraints.get(coordinate)
             );
+        }
+
+        for (int group = 0; group < solutions.size(); group++) {
+            if (group != constraint.constrainedAgent()) {
+                Path otherPath = solutions.get(group);
+                solver.getConflictAvoidanceTable().addPath(otherPath);
+            }
         }
         //System.out.println(solver.getReservation().reservedCoordinates);
         //System.out.println("constraints populated.");
@@ -96,6 +106,10 @@ public class CBSNode extends State {
         calculateCost(IRRELEVANT);
         //System.out.println("cost computed as: " + gValue);
         constraints.clear();
+
+        Path newPath = solutions.get(constraint.constrainedAgent());
+        conflict = solver.getConflictAvoidanceTable().simulatePath(newPath, constraint.constrainedAgent());
+        //System.out.println(conflict);
     }
 
     private void populateConstraints() {
@@ -123,6 +137,11 @@ public class CBSNode extends State {
 
     public List<Path> solutions() {
         return solutions;
+    }
+
+
+    public void setConflict(Conflict conflict) {
+        this.conflict = conflict;
     }
 
     @Override
@@ -163,7 +182,6 @@ public class CBSNode extends State {
 
     @Override
     public boolean goalTest(ProblemInstance problemInstance) {
-        findConflict();
         return conflict == null;
     }
 

@@ -2,6 +2,7 @@ package solvers.astar;
 
 import constants.CostFunction;
 import constants.Keys;
+import solvers.ConstrainedSolver;
 import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
 import utilities.CoordinateClosedList;
@@ -18,10 +19,14 @@ public class SingleAgentAStar extends MultiAgentAStar {
      * Constructor that creates a solver object that uses the
      * basic A* algorithm to solve problem instances
      */
-    public SingleAgentAStar() { super(CostFunction.SUM_OF_COSTS); }
+    public SingleAgentAStar() { this(null, -1); }
+
+    public SingleAgentAStar(ConstrainedSolver highLevel, int groupToSolve) {
+        super(CostFunction.SUM_OF_COSTS, highLevel, groupToSolve);
+    }
 
     public SingleAgentAStar(HashMap<Keys, Object> params) {
-        super(params);
+        super(CostFunction.SUM_OF_COSTS);
     }
 
     public State createRoot(ProblemInstance problemInstance) {
@@ -29,6 +34,10 @@ public class SingleAgentAStar extends MultiAgentAStar {
             throw new IllegalArgumentException("Passed ProblemInstance has more than one agent!");
 
         return super.createRoot(problemInstance);
+    }
+
+    public String toString() {
+        return "Single agent A*";
     }
 
 }

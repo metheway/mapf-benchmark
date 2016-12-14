@@ -31,7 +31,7 @@ public class EnhancedID extends IndependenceDetection {
         //         merge problems, solve together
         if (conflictedInPast.get(index).get(indexOfConflict)) {
             updateConflictRecord(index, indexOfConflict);
-            System.out.println("updated conflict record.");
+            //System.out.println("updated conflict record.");
             return super.resolveConflict(index, indexOfConflict);
         } else {
             conflictedInPast.get(index).set(indexOfConflict, true);
@@ -47,8 +47,8 @@ public class EnhancedID extends IndependenceDetection {
                 Path newPath = solver().getPath();
                 if (newPath.cost() == costLimit) {
                     paths().set(indexOfConflict, newPath);
-                    System.out.println("new optimal path found");
-                    System.out.println(newPath);
+                    //System.out.println("new optimal path found");
+                    //System.out.println(newPath);
                     finished = true;
                 }
             }
@@ -57,7 +57,7 @@ public class EnhancedID extends IndependenceDetection {
 
             // reserve second path, try to solve first
             if (!finished) {
-                System.out.println("first pass failed");
+                //System.out.println("first pass failed");
                 solver().getReservation().reservePath(paths().get(indexOfConflict));
                 costLimit = paths().get(index).cost();
                 if (solver().solve(current)) {
@@ -72,7 +72,7 @@ public class EnhancedID extends IndependenceDetection {
             solver().getReservation().clear();
 
             if (!finished) {
-                System.out.println("second pass failed... merging problems.");
+                //System.out.println("second pass failed... merging problems.");
                 return resolveConflict(index, indexOfConflict);
             } else {
                 return true;
@@ -108,5 +108,9 @@ public class EnhancedID extends IndependenceDetection {
             paths().forEach(p -> conflictedInPast.add(new ArrayList<>(defaultValues)));
         }
         return populated;
+    }
+
+    public String toString() {
+        return "Enhanced " + super.toString();
     }
 }
