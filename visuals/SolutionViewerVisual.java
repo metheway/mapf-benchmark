@@ -126,27 +126,17 @@ public class SolutionViewerVisual {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        ProblemMap problemMap = new ProblemMap(new File("src/maps/arena.map"));
-        Graph graph = new Graph(Connected.EIGHT, problemMap);
-        ProblemInstance problemInstance = new ProblemInstance(graph, 2);
+//      Graph graph = new Graph(Connected.EIGHT, new ProblemMap(new File("src/maps/arena.map")));
+//      ProblemInstance problemInstance = new ProblemInstance(graph, new File("src/problems/test_problem.bin"));
+        java.util.List<ProblemInstance> problems = ProblemInstance.deserializeFile(new File("src/problem_instances/maze_problem.prob"));
         Solver solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
-//        if (solver.solve(problemInstance)) {
-//            System.out.println("Successfully Solved");
-//        } else {
-//            System.out.println("Failure: not solved");
-//        }
-
-//        graph = new Graph(Connected.EIGHT, new ProblemMap(new File("src/maps/arena.map")));
-//        problemInstance = new ProblemInstance(graph, new File("src/problems/test_problem.bin"));
-        problemInstance = new ProblemInstance(new File("src/problems/test_problem.bin"));
-        solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
-        if (solver.solve(problemInstance)) {
+        if (solver.solve(problems.get(0))) {
             System.out.println("Successfully Solved");
         } else {
             System.out.println("Failure: not solved");
         }
 
-        SolutionViewerVisual solutionViewerVisual = new SolutionViewerVisual(10, problemInstance, solver.getPath());
+        SolutionViewerVisual solutionViewerVisual = new SolutionViewerVisual(10, problems.get(0), solver.getPath());
         JFrame frame = new JFrame("SolutionViewerVisual");
         frame.setSize(solutionViewerVisual.mapPanel.getWidth(), solutionViewerVisual.mapPanel.getHeight() + 20);
         frame.getContentPane().add(solutionViewerVisual.split);

@@ -30,6 +30,7 @@ public class ProblemCreationVisual {
     private JButton removeAllAgentsButton;
     private JButton removeAllRandomAgentsButton;
     private JButton removeAllManuallySpecifiedButton;
+    private JTextField numProblemsField;
     private JButton clearButton;
 
     private JSplitPane split;
@@ -44,7 +45,6 @@ public class ProblemCreationVisual {
 
     private Point startPoint;
     private Point endPoint;
-    private boolean mousePressed;
 
     public ProblemCreationVisual(ProblemMap map, Connected con, int tileSize) {
         problemMap = map;
@@ -55,6 +55,7 @@ public class ProblemCreationVisual {
         split = new JSplitPane();
         split.setLeftComponent(mapPanel);
         split.setRightComponent(panel1);
+        numProblemsField.setText("1");
         mapPanel.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentShown(ComponentEvent e) {
@@ -82,11 +83,6 @@ public class ProblemCreationVisual {
                 // Update the start and end position fields
                 endPositionField.setText(Integer.toString(graph.convertIndexInMapToGraph(mapPanel.getIndexOfPoint(endPoint))));
                 startPositionField.setText(Integer.toString(graph.convertIndexInMapToGraph(mapPanel.getIndexOfPoint(startPoint))));
-                if (endPositionField.getText().equals("-1") || startPositionField.getText().equals("-1")) {
-                    // Start or End position is not in the graph, so display an error message
-                    JOptionPane.showMessageDialog(split, "The start or goal position is invalid. " +
-                            "They must be on non-blocked nodes contained within the problem graph.");
-                }
             }
         });
         addAgentButton.addMouseListener(new MouseAdapter() {
@@ -103,7 +99,8 @@ public class ProblemCreationVisual {
                     endPositionField.setText("");
                     addedAgents.add(newAgent);
                 } else {
-                    JOptionPane.showMessageDialog(split, "The start or end position is invalid.");
+                    JOptionPane.showMessageDialog(split, "The start or goal position is invalid. " +
+                            "They must be on non-blocked nodes contained within the problem graph.");
                 }
                 update();
             }
@@ -114,7 +111,6 @@ public class ProblemCreationVisual {
                 super.mouseClicked(e);
                 // Increment the number of random addedAgents to add to the final problem
                 numTotalRandomAgents += Integer.parseInt(numRandomAgentsToAdd.getText());
-                System.out.println("Total Number of random addedAgents:" + numTotalRandomAgents);
                 // update problem instance
                 updateProblemInstance(Integer.parseInt(numRandomAgentsToAdd.getText()));
                 // display new addedAgents
@@ -127,12 +123,18 @@ public class ProblemCreationVisual {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                updateProblemInstance();
-                System.out.println(problemInstance.getAgents());
+                int numProblems = Integer.parseInt(numProblemsField.getText());
+                List<ProblemInstance> problems = new ArrayList<ProblemInstance>();
+                for (int i = 0; i < numProblems; i++) {
+                    problems.add(problemInstance);
+                    randomAgents.clear();
+                    // Update the problem instance, reassigning all the random agents
+                    updateProblemInstance(numTotalRandomAgents);
+                }
                 // Serialize and save to file
-                problemInstance.serialize(System.getProperty("user.dir") + "/src/problems/",
-                        problemNameField.getText());
-                System.out.println("Problem Saved as " + problemNameField.getText() + ".bin");
+                ProblemInstance.serialize(problems,
+                        System.getProperty("user.dir") + "/src/problem_instances/", problemNameField.getText());
+                System.out.println("Problem Saved as " + problemNameField.getText() + ".prob");
             }
         });
         clearSelectionButton.addMouseListener(new MouseAdapter() {
@@ -284,7 +286,7 @@ public class ProblemCreationVisual {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        ProblemMap problemMap = new ProblemMap(new File("src/maps/arena.map"));
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/maze512-1-0.map"));
         ProblemCreationVisual problemCreationVisual = new ProblemCreationVisual(problemMap, Connected.EIGHT, 10);
         JFrame frame = new JFrame("SolutionViewerVisual");
         frame.setSize(problemCreationVisual.mapPanel.getWidth(), problemCreationVisual.mapPanel.getHeight() + 20);

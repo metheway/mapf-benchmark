@@ -1,5 +1,6 @@
 package utilities;
 import java.io.*;
+import java.net.PortUnreachableException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +30,60 @@ public class ProblemInstance {
 	private Connected connectedness;
 	private TDHeuristic trueDistanceHeuristic;
 
+	public static List<ProblemInstance> deserializeFile(File file) {
+		List<ProblemInstance> problems = new ArrayList<>();
+		int numProblems = 0;
+		try {
+			FileInputStream fileIn = new FileInputStream(file);
+			BufferedInputStream buffer = new BufferedInputStream(fileIn);
+			ObjectInputStream objectIn = new ObjectInputStream(buffer);
+			// The number of problems in this file
+			numProblems = (Integer)	objectIn.readObject();
+			// Deserialize however many problems are in the file
+			for (int i = 0; i < numProblems; i++) {
+				List<Agent> agents = (List<Agent>) objectIn.readObject();
+				String mapTitle = (String) objectIn.readObject();
+				Connected connectedness = (Connected) objectIn.readObject();
+				Graph graph = new Graph(connectedness, new File("src/maps/" + mapTitle));
+				problems.add(new ProblemInstance(graph, agents));
+			}
+		}
+		catch(ClassNotFoundException e) {
+            e.printStackTrace();
+		}
+		catch(IOException e) {
+			e.printStackTrace();
+		}
+		return problems;
+	}
+
+    /**
+     * Serialize a list of ProblemInstance objects and
+     * store it in a file with the given name in a directory
+	 * @param problems The list of ProblemInstance objects to serialize
+     * @param path the path to the directory
+     * @param fileName name to give the problem instance
+     */
+	public static void serialize(List<ProblemInstance> problems, String path, String fileName) {
+		try {
+			FileOutputStream fileOut = new FileOutputStream(path + fileName + ".prob");
+			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+			// Write number of problems
+			objectOut.writeObject(problems.size());
+			// Write each problem
+			for (ProblemInstance problem : problems) {
+				// agents title connect graph
+				objectOut.writeObject(problem.agents);
+                objectOut.writeObject(problem.graph.getMapTitle());
+                objectOut.writeObject(problem.graph.getConnectedness());
+            }
+			fileOut.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * Constructor that creates a problem instance using the given
      * graph, with agents from a file of serialized agents
@@ -37,7 +92,7 @@ public class ProblemInstance {
 	// This constructor is deprecated and should not be used
 	@Deprecated
 	public ProblemInstance(Graph gr, File agentsFile){
-		agents = deserializeAgents(agentsFile);
+//		agents = deserializeAgents(agentsFile);
         graph = gr;
 		goalPositions = agentGoals();
         if (!mapTitle.equals(graph.getMapTitle()))
@@ -52,12 +107,16 @@ public class ProblemInstance {
 	 * @param problem_file
 	 * @throws FileNotFoundException
      */
+	// TODO: remove this
+	/*
 	public ProblemInstance(File problem_file) throws FileNotFoundException {
 		// Pull the agents and map title out of the file
 		agents = deserializeAgents(problem_file);
 		graph = new Graph(connectedness, new ProblemMap(new File("src/maps/" + mapTitle)));
 		goalPositions = agentGoals();
+		trueDistanceHeuristic = new TDHeuristic(this);
 	}
+	*/
 
     /**
      * Constructor that creates a problem instance using the given
@@ -213,29 +272,9 @@ public class ProblemInstance {
 		return goalList;
 	}
 
-    /**
-     * Serialize this problem instance and
-     * store it in a file with the given name
-     * in a directory
-     * @param path the path to the directory
-     * @param fileName name to give the problem instance
-     */
-	public void serialize(String path, String fileName) {
-		try {
-			FileOutputStream fileOut = new FileOutputStream(path + fileName + ".prob");
-			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
-            objectOut.writeObject(graph.getMapTitle());
-			objectOut.writeObject(graph.getConnectedness());
-			objectOut.writeObject(agents.size());
-			for (Agent a : agents)
-				objectOut.writeObject(a);
-			fileOut.close();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 
+	// TODO: remove this
+	/*
 	private List<Agent> deserializeAgents(File agentsFile) {
 		List<Agent> agentList = new ArrayList<Agent>();
 		Integer numAgents = 0;
@@ -256,9 +295,9 @@ public class ProblemInstance {
 		catch(IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println(numAgents);
 		return agentList;
 	}
+	*/
 
 
 	private boolean duplicateGoalsOrStarts(List<Agent> agentList) {

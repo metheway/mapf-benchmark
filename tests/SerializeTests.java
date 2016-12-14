@@ -17,7 +17,7 @@ public class SerializeTests {
         ProblemInstance p1 = new ProblemInstance(gr1, 10);
         ProblemInstance p2 = new ProblemInstance(gr2, 3);
 
-        p1.serialize("src/problem_instances/", "arena_10a");
+        //p1.serialize("src/problem_instances/", "arena_10a");
         //p2.serialize("src/test_bin/", "test2");
 /*
         try {
