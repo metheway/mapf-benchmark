@@ -2,7 +2,6 @@ package solvers;
 
 import constants.ConflictType;
 import solvers.astar.State;
-import solvers.independence_detection.IndependenceDetection;
 import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
 import utilities.Conflict;
@@ -25,7 +24,7 @@ public class ConflictAvoidanceTable {
     protected Map<Coordinate, List<Integer>> groupOccupantTable;
 
     protected Map<Node, int[]> agentDestinations;
-    protected List<Integer> relevantGroups;
+    //rprotected List<Integer> relevantGroups;
     protected Map<Integer, Integer> agentGroups;
 
     private static final int DEST_TIME_STEP = 0;
@@ -43,7 +42,7 @@ public class ConflictAvoidanceTable {
         this.groupOccupantTable = groupOccupantTable;
         this.agentDestinations = agentDestinations;
         this.lastTimeStep = lastTimeStep;
-        this.relevantGroups = relevantGroups;
+        //this.relevantGroups = relevantGroups;
         this.agentGroups = agentGroups;
     }
 
@@ -121,9 +120,12 @@ public class ConflictAvoidanceTable {
                     Iterator<Integer> groupIter = possibleConflicts.iterator();
                     while (groupIter.hasNext() && conflictingGroup == NO_CONFLICT) {
                         int possibleConflict = groupIter.next();
-                        if (relevantGroups.contains(agentGroups.get(possibleConflict)) && possibleConflict != agentGoal) {
+                        if (possibleConflict != agentGoal) {
                             conflictingGroup = possibleConflict;
                         }
+                        //if (relevantGroups.contains(agentGroups.get(possibleConflict)) && possibleConflict != agentGoal) {
+                        //    conflictingGroup = possibleConflict;
+                        //}
                     }
                 }
             }
@@ -139,9 +141,12 @@ public class ConflictAvoidanceTable {
         }
 
         for (Integer possibleConflict : groupOccupantTable.get(coordinate)) {
-            if (relevantGroups.contains(agentGroups.get(possibleConflict)) && possibleConflict != agentGoal) {
+            if (possibleConflict != agentGoal) {
                 return possibleConflict;
             }
+            //if (relevantGroups.contains(agentGroups.get(possibleConflict)) && possibleConflict != agentGoal) {
+            //    return possibleConflict;
+            //}
         }
 
         return NO_CONFLICT;
@@ -156,8 +161,9 @@ public class ConflictAvoidanceTable {
                 conflictingGroup = data[DEST_GROUP];
             }
         }
-        boolean relevantConflict = relevantGroups.contains(agentGroups.get(conflictingGroup)) ;
-        return relevantConflict ? conflictingGroup : NO_CONFLICT;
+        //boolean relevantConflict = relevantGroups.contains(agentGroups.get(conflictingGroup)) ;
+        //return relevantConflict ? conflictingGroup : NO_CONFLICT;
+        return conflictingGroup;
     }
 
     public void addPath(Path path) {
@@ -295,9 +301,9 @@ public class ConflictAvoidanceTable {
         return coordinateTable;
     }
 
-    public void setRelevantGroups(List<Integer> relevantGroups) {
-        this.relevantGroups = relevantGroups;
-    }
+    //public void setRelevantGroups(List<Integer> relevantGroups) {
+    //    this.relevantGroups = relevantGroups;
+    //}
 
     public void setAgentGroups(Map<Integer, Integer> agentGroups) {
         this.agentGroups = agentGroups;
@@ -307,9 +313,9 @@ public class ConflictAvoidanceTable {
         return agentGroups;
     }
 
-    public List<Integer> getRelevantGroups() {
-        return relevantGroups;
-    }
+    //public List<Integer> getRelevantGroups() {
+    //    return relevantGroups;
+    //}
 
     public ConflictAvoidanceTable deepCopy() {
         // deep copy of coordinate table
