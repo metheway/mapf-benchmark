@@ -25,36 +25,26 @@ public class ConflictAvoidanceTable {
 
     protected Map<Node, int[]> agentDestinations;
     //rprotected List<Integer> relevantGroups;
-    protected Map<Integer, Integer> agentGroups;
+    //protected Map<Integer, Integer> agentGroups;
 
     private static final int DEST_TIME_STEP = 0;
     private static final int DEST_GROUP = 1;
 
     private Conflict earliestConflict;
 
-    public ConflictAvoidanceTable(Map<Coordinate, List<Coordinate>> coordinateTable,
-                                  Map<Coordinate, List<Integer>> groupOccupantTable,
-                                  Map<Node, int[]> agentDestinations,
-                                  int lastTimeStep,
-                                  List<Integer> relevantGroups,
-                                  Map<Integer, Integer> agentGroups) {
-        this.coordinateTable = coordinateTable;
-        this.groupOccupantTable = groupOccupantTable;
-        this.agentDestinations = agentDestinations;
-        this.lastTimeStep = lastTimeStep;
-        //this.relevantGroups = relevantGroups;
-        this.agentGroups = agentGroups;
-    }
 
     public ConflictAvoidanceTable(Map<Coordinate, List<Coordinate>> coordinateTable,
                                   Map<Coordinate, List<Integer>> groupOccupantTable,
                                   Map<Node, int[]> agentDestinations,
                                   int lastTimeStep) {
-        this(coordinateTable, groupOccupantTable, agentDestinations, lastTimeStep, new ArrayList<>(), new HashMap<>());
+        this.coordinateTable = coordinateTable;
+        this.groupOccupantTable = groupOccupantTable;
+        this.agentDestinations = agentDestinations;
+        this.lastTimeStep = lastTimeStep;
     }
 
     public ConflictAvoidanceTable() {
-        this(new HashMap<>(), new HashMap<>(), new HashMap<>(), 0, new ArrayList<>(), new HashMap<>());
+        this(new HashMap<>(), new HashMap<>(), new HashMap<>(), 0);
     }
 
     public boolean isValid(State state) {
@@ -305,13 +295,13 @@ public class ConflictAvoidanceTable {
     //    this.relevantGroups = relevantGroups;
     //}
 
-    public void setAgentGroups(Map<Integer, Integer> agentGroups) {
-        this.agentGroups = agentGroups;
-    }
+//    public void setAgentGroups(Map<Integer, Integer> agentGroups) {
+        //this.agentGroups = agentGroups;
+//    }
 
-    public Map<Integer, Integer> getAgentGroups() {
-        return agentGroups;
-    }
+//    public Map<Integer, Integer> getAgentGroups() {
+//        return agentGroups;
+//    }
 
     //public List<Integer> getRelevantGroups() {
     //    return relevantGroups;
