@@ -74,7 +74,7 @@ public class MultiAgentState extends State {
 
     private List<List<SingleAgentState>> generateNeighbors(ProblemInstance problem) {
         int branchFactor = 0;
-        if (!singleStates.isEmpty()) branchFactor = problem.getGraph().getConnectedness() + 1;
+        if (!singleStates.isEmpty()) branchFactor = problem.getGraph().getConnectednessNumber() + 1;
         int initialCapacity = (int) Math.pow(branchFactor, singleStates.size());
         List<List<SingleAgentState>> prelim = new ArrayList<>(initialCapacity);
         for (SingleAgentState sa : singleStates) {
