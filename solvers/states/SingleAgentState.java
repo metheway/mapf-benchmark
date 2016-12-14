@@ -208,6 +208,24 @@ public class SingleAgentState extends State {
         }
     }
 
+    private double getEdgeCost(SingleAgentState next){
+        Node[] neighbors = coord.getNode().getNeighbors();
+        Node n = next.coord.getNode();
+        for (int i = 0; i < neighbors.length; i++) {
+            if (neighbors[i] != null)
+                if (neighbors[i].equals(n)) {
+                    return costOfNeighbor(i);
+                }
+        }
+        return Double.MAX_VALUE;
+    }
+
+    private double calcDeltaF(SingleAgentState next, ProblemInstance problem){
+        double deltaH = next.hValue(problem.getTrueDistanceHeuristic()) -
+                this.hValue(problem.getTrueDistanceHeuristic());
+        return deltaH + this.getEdgeCost(next);
+    }
+
     public int getAgentId() {
         return agentId;
     }
@@ -218,6 +236,10 @@ public class SingleAgentState extends State {
 
     public void setHeuristic(TDHeuristic heuristic) {
         hValue = heuristic.trueDistance(coord.getNode(), agentGoal);
+    }
+
+    public double hValue(TDHeuristic heuristic) {
+        return heuristic.trueDistance(coord.getNode(), agentGoal);
     }
 
     public boolean isLegal(SingleAgentState other){
