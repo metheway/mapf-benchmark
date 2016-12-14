@@ -4,6 +4,7 @@ import java.util.*;
 
 import constants.Keys;
 import solvers.ConstrainedSolver;
+import solvers.MultiLevelReservation;
 import solvers.Reservation;
 import solvers.states.MultiAgentState;
 import solvers.states.SingleAgentState;
@@ -18,7 +19,7 @@ public abstract class GenericAStar extends ConstrainedSolver {
     protected PriorityQueue<State> openList;
     protected IClosedList closedList;
     protected State goal;
-    private TDHeuristic heuristic;
+    private ProblemInstance problemInstance;
 
     public GenericAStar() {
         this(new HashMap<>());
@@ -30,6 +31,11 @@ public abstract class GenericAStar extends ConstrainedSolver {
      * @param params parameters to alter the behavior of an A* solver
      */
     public GenericAStar(Map<Keys, Object> params) {
+        this(null, -1, params);
+    }
+
+    public GenericAStar(ConstrainedSolver parentSolver, int groupToSolve, Map<Keys, Object> params) {
+        super(parentSolver, groupToSolve);
         this.params = params;
         openList = new PriorityQueue<>();
         closedList = new StateClosedList();
@@ -46,7 +52,7 @@ public abstract class GenericAStar extends ConstrainedSolver {
      * Solves the search problem specified by the root state
      * @return true if the goal was reached, false otherwise
      */
-    public boolean solve(ProblemInstance problem) {
+    public boolean subSolve(ProblemInstance problem) {
         init(problem);
         State current = createRoot(problem);
         setStateHeuristic(current);
@@ -68,6 +74,7 @@ public abstract class GenericAStar extends ConstrainedSolver {
         if (getReservation().isValid(state)) {
             if (!closedList.contains(state)) {
                 setStateHeuristic(state);
+                state.updateCATViolations(getConflictAvoidanceTable());
                 openList.add(state);
                 closedList.add(state);
             }
@@ -96,21 +103,20 @@ public abstract class GenericAStar extends ConstrainedSolver {
     }
 
     protected void setStateHeuristic(State s) {
-        s.setHeuristic(heuristic);
+        s.setHeuristic(problemInstance.getTrueDistanceHeuristic());
     }
+
     
     /**
      * Reset the open and closed lists to solve a new problem of the same type.
      */
     protected void init(ProblemInstance problem) {
     	goal = null;
+        this.problemInstance = problem;
     	openList.clear();
         closedList = new StateClosedList();
-        if (params.get(Keys.PREPROCESS) == null
-                || (Boolean) params.get(Keys.PREPROCESS))
-            heuristic = new TDHeuristic(problem);
         if (params.get(Keys.RESERVATIONS) != null)
-            setReservation((Reservation) params.get(Keys.RESERVATIONS));
+            setReservation((MultiLevelReservation) params.get(Keys.RESERVATIONS));
     }
 
     protected boolean isGoal(ProblemInstance p, State s) {

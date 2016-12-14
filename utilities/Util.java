@@ -67,12 +67,12 @@ public class Util {
                 Path path = pathList.get(i);
                 //System.out.println("checking path " + i);
                 for (int t = 1; t < thisPath.size(); t++) {
-                    MultiAgentState odState = (MultiAgentState) thisPath.get(t);
+                    MultiAgentState prelimState = (MultiAgentState) thisPath.get(t);
                     MultiAgentState compareWith;
                     if (t < path.size()) compareWith = (MultiAgentState) path.get(t);
                     else compareWith = (MultiAgentState) path.get(path.size() - 1);
 
-                    List<SingleAgentState> maStateSingle = odState.getSingleAgentStates();
+                    List<SingleAgentState> maStateSingle = prelimState.getSingleAgentStates();
                     List<SingleAgentState> compareWithSingle = compareWith.getSingleAgentStates();
                     HashSet<SingleAgentState> filter = new HashSet<>(maStateSingle);
                     filter.retainAll(compareWithSingle);

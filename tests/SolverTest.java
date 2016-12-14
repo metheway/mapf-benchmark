@@ -1,7 +1,9 @@
 package tests;
 
 import solvers.ConflictAvoidanceTable;
+import solvers.ConstrainedSolver;
 import solvers.astar.*;
+import solvers.cbs.ConflictBasedSearch;
 import solvers.independence_detection.EnhancedID;
 import solvers.independence_detection.IndependenceDetection;
 import solvers.states.ODState;
@@ -24,10 +26,10 @@ public class SolverTest {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		//testSingleAgent();
-        //testMultiAgent();
+        testMultiAgent();
         //testIndependenceDetection();
         //testReservation();
-	    testCAT();
+        testCATInheritance();
 	}
 
 	public static void testSingleAgent() throws FileNotFoundException {
@@ -51,10 +53,30 @@ public class SolverTest {
         ProblemInstance problemInstance = new ProblemInstance(graph, Arrays.asList(a1, a2, a3));
         MultiAgentAStar solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
         if (solver.solve(problemInstance)) {
-            System.out.println(solver.getPath());
+            for (State s : solver.getPath()) {
+                s.printIndices();
+            }
+            System.out.println("\n" +solver.getPath().cost());
         } else {
             System.out.println("Failure");
         }
+        solver.getConflictAvoidanceTable().addLevel();
+        solver.getConflictAvoidanceTable().addPath(solver.getPath());
+        System.out.println(solver.getConflictAvoidanceTable());
+        Map<Integer, Integer> agentMap = new HashMap<>();
+        for (int i = 0; i < problemInstance.getAgents().size(); i++) {
+            agentMap.put(problemInstance.getAgents().get(i).goal(), i);
+        }
+        System.out.println(agentMap);
+        solver.getConflictAvoidanceTable().setAgentGroups(agentMap);
+        solver.getConflictAvoidanceTable().setRelevantGroups(Arrays.asList(0, 1, 2));
+        System.out.println(solver.getConflictAvoidanceTable().getGroupOccupantTable());
+        System.out.println(solver.getConflictAvoidanceTable().getAgentGroups().get(4));
+        SingleAgentState singleAgentState = new SingleAgentState(2, problemInstance);
+        System.out.println(singleAgentState.coordinate());
+        System.out.println("should be true: " + solver.getConflictAvoidanceTable().isValid(singleAgentState));
+        System.out.println();
+
 	}
 
     public static void testIndependenceDetection() throws FileNotFoundException {
@@ -96,13 +118,64 @@ public class SolverTest {
         SingleAgentAStar solver = new SingleAgentAStar();
         solver.solve(problemInstance);
         Path path = solver.getPath();
-        cat.addPath(path, 0);
+        cat.addPath(path);
 
         problemInstance = new ProblemInstance(graph, Collections.singletonList(other));
         solver.solve(problemInstance);
         path = solver.getPath();
-        cat.addPath(path, 1);
+        cat.addPath(path);
         System.out.println(cat);
+    }
+
+    public static void testCBS() throws FileNotFoundException {
+        ConflictBasedSearch cbs = new ConflictBasedSearch();
+        EnhancedID id = new EnhancedID(new OperatorDecomposition());
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/arena.map"));
+        Graph graph = new Graph(Connected.EIGHT, problemMap);
+
+        for (int i = 0; i < 1; i++) {
+            ProblemInstance problemInstance = new ProblemInstance(graph, 20);
+            long t = System.currentTimeMillis();
+            cbs.solve(problemInstance);
+            System.out.println(System.currentTimeMillis() - t);
+            System.out.println("CBS: " + cbs.getPath().cost());
+            //System.out.println(cbs.getPath());
+            for (State s : cbs.getPath()) {
+                s.printIndices();
+            }
+            System.out.println();
+            t = System.currentTimeMillis();
+            id.solve(problemInstance);
+            System.out.println(System.currentTimeMillis() - t);
+            System.out.println("ID: " + id.getPath().cost());
+            for (State s : id.getPath()) {
+                s.printIndices();
+            }
+            System.out.println();
+            //System.out.println(id.getPath());
+        }
+    }
+
+    public static void testProblemInstanceWithHeuristic() throws FileNotFoundException {
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/arena.map"));
+        Graph graph = new Graph(Connected.EIGHT, problemMap);
+        ProblemInstance problemInstance = new ProblemInstance(graph, 10);
+        System.out.println(problemInstance.getTrueDistanceHeuristic().getLookup());
+    }
+
+    public static void testCATInheritance() throws FileNotFoundException {
+        ProblemMap map = new ProblemMap(new File("src/maps/test.map"));
+        ProblemInstance toy = new ProblemInstance(new Graph(Connected.EIGHT, map), Collections.singletonList(new Agent(0, 1, 0)));
+        ConstrainedSolver maAStar = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
+        maAStar.solve(toy);
+        maAStar.getConflictAvoidanceTable().addLevel();
+        maAStar.getReservation().addLevel();
+        maAStar.getConflictAvoidanceTable().addPath(maAStar.getPath());
+        maAStar.getReservation().addPath(maAStar.getPath());
+        System.out.println(maAStar.getConflictAvoidanceTable());
+        SingleAgentAStar saAStar = new SingleAgentAStar(maAStar, -1);
+        System.out.println(saAStar.getConflictAvoidanceTable());
+        System.out.println(saAStar.getReservation());
     }
 
 }

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import constants.Positions;
 import solvers.ConflictAvoidanceTable;
+import solvers.MultiLevelCAT;
 import solvers.astar.TDHeuristic;
 import utilities.Agent;
 import utilities.Node;
@@ -40,6 +41,7 @@ import solvers.astar.State;
 public class SingleAgentState extends State {
 
     private final int agentId;
+    private final int agentGoal;
     private final Coordinate coord;
 
     // calculate g-value in the state itself instead of passing cost into the 
@@ -56,13 +58,17 @@ public class SingleAgentState extends State {
         } else {
             coord = new Coordinate(0, currentNode);
         }
+        this.agentGoal = problem.getGoal().get(agentId).getIndexInGraph();
+
         calculateCost(problem);
+        this.conflictViolations = backPointer.conflictViolations;
     }
 
     public SingleAgentState(int agentId, ProblemInstance problem) {
         super(null);
         Agent a = problem.getAgents().get(agentId);
         Node currentNode = problem.getGraph().getNodes().get(a.position());
+        this.agentGoal = a.goal();
         this.agentId = agentId;
         coord = new Coordinate(0, currentNode);
     }
@@ -88,8 +94,8 @@ public class SingleAgentState extends State {
         return neighbors;
     }
 
-    public void updateCATViolations(ConflictAvoidanceTable conflictAvoidanceTable) {
-
+    public void updateCATViolations(MultiLevelCAT conflictAvoidanceTable) {
+        this.conflictViolations += conflictAvoidanceTable.totalViolations(this);
     }
 
     /**
@@ -109,7 +115,7 @@ public class SingleAgentState extends State {
     private SingleAgentState waitState(ProblemInstance problem) {
         return new SingleAgentState(agentId, coord.getNode(), this, problem);
     }
-    
+
 
     /**
      * Helper method to generate costs in the expand() method
@@ -189,8 +195,12 @@ public class SingleAgentState extends State {
         return agentId;
     }
 
+    public int getAgentGoal() {
+        return agentGoal;
+    }
+
     public void setHeuristic(TDHeuristic heuristic) {
-        hValue = heuristic.trueDistance(coord.getNode(), agentId);
+        hValue = heuristic.trueDistance(coord.getNode(), agentGoal);
     }
 
 

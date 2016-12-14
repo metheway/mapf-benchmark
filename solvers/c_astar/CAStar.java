@@ -2,8 +2,11 @@ package solvers.c_astar;
 
 import solvers.ConstrainedSolver;
 import solvers.Reservation;
+import solvers.astar.MultiAgentAStar;
 import solvers.astar.SingleAgentAStar;
 import solvers.astar.State;
+import solvers.astar.TDHeuristic;
+import solvers.states.MultiAgentState;
 import utilities.Agent;
 import utilities.Path;
 import utilities.ProblemInstance;
@@ -27,7 +30,7 @@ public class CAStar extends ConstrainedSolver {
     private ProblemInstance problemInstance;
 
     @Override
-    public boolean solve(ProblemInstance problem) {
+    public boolean subSolve(ProblemInstance problem) {
         this.problemInstance = problem;
         init();
         List<Agent> agents = problem.getAgents();
@@ -57,5 +60,9 @@ public class CAStar extends ConstrainedSolver {
     public Path getPath() {
         return Util.mergePaths(paths, problemInstance);
     }
+
+    public String toString() {
+    	return "Cooperative A*";
+	}
 
 }
