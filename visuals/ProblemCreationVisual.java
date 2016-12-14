@@ -80,20 +80,31 @@ public class ProblemCreationVisual {
                     mapPanel.getGraphics().drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
                 }
                 // Update the start and end position fields
-                endPositionField.setText(Integer.toString(mapPanel.getIndexOfPoint(endPoint)));
-                startPositionField.setText(Integer.toString(mapPanel.getIndexOfPoint(startPoint)));
+                endPositionField.setText(Integer.toString(graph.convertIndexInMapToGraph(mapPanel.getIndexOfPoint(endPoint))));
+                startPositionField.setText(Integer.toString(graph.convertIndexInMapToGraph(mapPanel.getIndexOfPoint(startPoint))));
+                if (endPositionField.getText().equals("-1") || startPositionField.getText().equals("-1")) {
+                    // Start or End position is not in the graph, so display an error message
+                    JOptionPane.showMessageDialog(split, "The start or goal position is invalid. " +
+                            "They must be on non-blocked nodes contained within the problem graph.");
+                }
             }
         });
         addAgentButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                Agent newAgent = new Agent(Integer.parseInt(startPositionField.getText()),
-                        Integer.parseInt(endPositionField.getText()), addedAgents.size());
-                // Clear the two text fields
-                startPositionField.setText("");
-                endPositionField.setText("");
-                addedAgents.add(newAgent);
+                int startIndexInGraph = Integer.parseInt(startPositionField.getText());
+                int endIndexInGraph = Integer.parseInt(endPositionField.getText());
+                // if our start index and end index (in the graph) are both valid, add the agent
+                if (startIndexInGraph != -1 && endIndexInGraph != -1) {
+                    Agent newAgent = new Agent(startIndexInGraph, endIndexInGraph, addedAgents.size());
+                    // Clear the two text fields
+                    startPositionField.setText("");
+                    endPositionField.setText("");
+                    addedAgents.add(newAgent);
+                } else {
+                    JOptionPane.showMessageDialog(split, "The start or end position is invalid.");
+                }
                 update();
             }
         });
@@ -259,8 +270,8 @@ public class ProblemCreationVisual {
     }
 
     void drawAgent(Graphics g, Agent agent) {
-        int startIndexInMap = agent.position();
-        int goalIndexInMap = agent.goal();
+        int startIndexInMap = graph.getNodes().get(agent.position()).getIndexInMap();
+        int goalIndexInMap = graph.getNodes().get(agent.goal()).getIndexInMap();
         g.setColor(Color.RED);
         mapPanel.paintCell(g, startIndexInMap);
         // Color goal position blue

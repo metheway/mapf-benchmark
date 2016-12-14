@@ -1,7 +1,7 @@
 package utilities;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.io.InputStream;
+import java.net.Inet4Address;
+import java.util.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -22,6 +22,8 @@ public class Graph {
 	private Connected connectedness;
 	private List<Agent> agents;
 	private String mapTitle;
+
+	private Map<Integer, Integer> indexInMapToIndexInGraph;
 	
 	private static final Node OBSTACLE = null;
 	
@@ -37,20 +39,16 @@ public class Graph {
 	public Graph(Connected c, File mapFile) throws FileNotFoundException{
 		connectedness = c;
 		map = new ProblemMap(mapFile);
-        mapTitle = parseMapTitle(mapFile.getAbsolutePath());
 		nodes = generateGraph();
+		indexInMapToIndexInGraph = generateIndexMap();
 	}
 
 	public Graph(Connected c, ProblemMap problemMap) {
 		connectedness = c;
 		map = problemMap;
-		mapTitle = problemMap.getMapType();
 		nodes = generateGraph();
+		indexInMapToIndexInGraph = generateIndexMap();
 	}
-
-    private String parseMapTitle(String path) {
-        return path.substring(path.lastIndexOf('/') + 1);
-    }
 
     /**
      * Constructor that creates a graph with the given connectedness and
@@ -64,6 +62,7 @@ public class Graph {
 		connectedness = c;
 		map = new ProblemMap(obstacleProbability, 32, 32);
 		nodes = generateGraph();
+		indexInMapToIndexInGraph = generateIndexMap();
 		agents = generateRandomAgents(5);
 	}
 
@@ -101,6 +100,18 @@ public class Graph {
 		}
 		
 		return cleanGraph;
+	}
+
+	private Map<Integer, Integer> generateIndexMap() {
+		Map<Integer, Integer> resultMap = new HashMap<>();
+
+		// for every node in the list of nodes
+		for (Node node : nodes) {
+			// create an entry in the map mapping from the nodes map index to it's graph index
+			resultMap.put(node.getIndexInMap(), node.getIndexInGraph());
+		}
+
+		return resultMap;
 	}
 	
 	public List<Agent> getAgents() {
@@ -180,12 +191,33 @@ public class Graph {
 		return nodes;
 	}
 
-    /**
-     * Accessor for the connectedness of the graph
-     * @return the connectedness of the graph
+	/**
+	 * Accessor for the connectedness of the graph
+	 * @return Returns the connectedness of the graph
      */
-	public int getConnectedness() {
+	public Connected getConnectedness() {
+		return connectedness;
+	}
+    /**
+     * Accessor for the connectedness number of the graph
+     * @return the connectedness number of the graph
+     */
+	public int getConnectednessNumber() {
 		return connNumber(connectedness);
+	}
+
+	/**
+	 * Allows conversion from an index in the map to and index in the graph
+	 * @return Returns the indexInGraph for the node with the given indexInMap, or -1 if the requested index does
+	 * not exist
+     */
+	public int convertIndexInMapToGraph(int indexInMap) {
+		Integer indexInGraph = indexInMapToIndexInGraph.get(indexInMap);
+		if (indexInGraph == null) {
+			return -1;
+		} else {
+			return indexInGraph;
+		}
 	}
 
     /**
@@ -194,7 +226,7 @@ public class Graph {
      * @return the title of the map associated to this graph
      */
 	public String getMapTitle() {
-		return mapTitle;
+		return map.getMapTitle();
 	}
 
 	// random numSteps-length walk beginning at startNode

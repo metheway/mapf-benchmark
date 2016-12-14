@@ -39,7 +39,6 @@ public class MapPanel extends JPanel {
 		int bufferedWidth = map.getWidth() + 2;
 		int x = tileSize * (index%bufferedWidth);
 		int y = tileSize * (index/bufferedWidth);
-		System.out.println("Index: " + index + ", x: " + x + ", y: " + y + ", buffered width: " + bufferedWidth);
 		g.fillRect(x,y,tileSize,tileSize);
 	}
 
