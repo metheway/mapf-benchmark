@@ -43,6 +43,7 @@ public class Coordinate {
         return node;
     }
 
+
     @Override
     public String toString() {
         return "(t=" + timeStep + " n=" + node.getIndexInGraph() +")";

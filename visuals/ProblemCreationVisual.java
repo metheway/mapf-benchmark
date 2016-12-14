@@ -273,7 +273,7 @@ public class ProblemCreationVisual {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        ProblemMap problemMap = new ProblemMap(new File("src/maps/arena.map"));
+        ProblemMap problemMap = new ProblemMap(new File("/Users/guni/Dropbox/Code/mapf-benchmark/maps/arena.map"));
         ProblemCreationVisual problemCreationVisual = new ProblemCreationVisual(problemMap, Connected.EIGHT, 10);
         JFrame frame = new JFrame("SolutionViewerVisual");
         frame.setSize(problemCreationVisual.mapPanel.getWidth(), problemCreationVisual.mapPanel.getHeight() + 20);

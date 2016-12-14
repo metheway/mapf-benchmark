@@ -166,6 +166,23 @@ public class SingleAgentState extends State {
         return true;
     }
 
+    public boolean crossConflicts(SingleAgentState other) {
+        if (other == null)
+            return false;
+        if (coord.getNode() == null) {
+            if (other.coord.getNode() != null)
+                return false;
+        } else if (!(coord.getNode().equals(other.coord.getNode())))
+            return false;
+        if(coord.getTimeStep() == other.coord.getTimeStep() +1) {
+            return true;
+        }
+        if(coord.getTimeStep() == other.coord.getTimeStep() -1) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     protected void calculateCost(ProblemInstance problem) {
         if (isRoot()) {
@@ -201,6 +218,18 @@ public class SingleAgentState extends State {
 
     public void setHeuristic(TDHeuristic heuristic) {
         hValue = heuristic.trueDistance(coord.getNode(), agentGoal);
+    }
+
+    public boolean isLegal(SingleAgentState other){
+        if(this.equals(other)){
+            return false;
+        }
+        if(other.crossConflicts((SingleAgentState)(super.backPointer))){
+            if(this.crossConflicts((SingleAgentState)(other.backPointer))){
+                return false;
+            }
+        }
+        return true;
     }
 
 

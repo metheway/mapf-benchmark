@@ -11,7 +11,7 @@ public abstract class State implements Comparable<State> {
     protected double gValue;
     protected double hValue;
     protected int conflictViolations;
-    private State backPointer;
+    protected State backPointer;
 
     /**
      * Constructor.

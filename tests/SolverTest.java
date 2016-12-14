@@ -29,7 +29,7 @@ public class SolverTest {
         testMultiAgent();
         //testIndependenceDetection();
         //testReservation();
-        testCATInheritance();
+        //testCATInheritance();
 	}
 
 	public static void testSingleAgent() throws FileNotFoundException {
@@ -51,8 +51,9 @@ public class SolverTest {
         Agent a2 = new Agent(5, 9, 1);
         Agent a3 = new Agent(10, 14, 2);
         ProblemInstance problemInstance = new ProblemInstance(graph, Arrays.asList(a1, a2, a3));
+        ProblemInstance randomInstance = new ProblemInstance(graph, 5);
         MultiAgentAStar solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
-        if (solver.solve(problemInstance)) {
+        if (solver.solve(randomInstance)) {
             for (State s : solver.getPath()) {
                 s.printIndices();
             }

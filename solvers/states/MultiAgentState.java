@@ -56,12 +56,16 @@ public class MultiAgentState extends State {
 
     @Override
     public List<State> expand(ProblemInstance problem) {
-        List<State> neighbors = new ArrayList<>();
-        List<List<SingleAgentState>> lists = generateNeighbors(problem);
-        for (List<SingleAgentState> list : lists) {
-            neighbors.add(new MultiAgentState(this, costFunction, list, problem));
-        }
-        return neighbors;
+        List<State> answer = new ArrayList<>();
+        generateNeighbors(problem, 0, new ArrayList<SingleAgentState>(), answer);
+        return answer;
+
+//        List<State> neighbors = new ArrayList<>();
+//        List<List<SingleAgentState>> lists = generateNeighbors(problem);
+//        for (List<SingleAgentState> list : lists) {
+//            neighbors.add(new MultiAgentState(this, costFunction, list, problem));
+//        }
+//        return neighbors;
     }
 
     public void updateCATViolations(MultiLevelCAT conflictAvoidanceTable) {
@@ -82,6 +86,38 @@ public class MultiAgentState extends State {
         }
         filter(prelim, singleStates);
         return prelim;
+    }
+
+    private void generateNeighbors(ProblemInstance problem, int agentIndex,
+                                                           List<SingleAgentState> currentBranch, List<State> answer) {
+        // If all agents are set. Build a new state from the current branch and add it to the returned list
+        if(agentIndex == singleStates.size()){
+            answer.add(new MultiAgentState(this, costFunction, new ArrayList<SingleAgentState>(currentBranch), problem));
+            return;
+        }
+        SingleAgentState current = singleStates.get(agentIndex);
+        // for each legal move of agentIndex:
+        List<State> currentMoves = current.expand(problem);
+        for(State move : currentMoves) {
+            // If move does not conflict with any previous assigned moves in current branch then:
+            if (isLegalMove(currentBranch, (SingleAgentState)move)) {
+                // add this move to the current branch and call
+                currentBranch.add((SingleAgentState)move);
+                //recursive call
+                generateNeighbors(problem, agentIndex+1, currentBranch, answer);
+                //remove last entry in the branch
+                currentBranch.remove(currentBranch.size() - 1);
+            }
+        }
+    }
+
+    private boolean isLegalMove(List<SingleAgentState> currentBranch, SingleAgentState state){
+        for(SingleAgentState other : currentBranch){
+            if(state.isLegal(other) == false){
+                return false;
+            }
+        }
+        return true;
     }
 
     private static void process(SingleAgentState sa, ProblemInstance problem, List<List<SingleAgentState>> processed) {
