@@ -20,4 +20,5 @@ public interface Solver {
      * @return the path found by the solver
      */
     Path getPath();
+
 }

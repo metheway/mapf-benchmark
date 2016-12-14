@@ -39,7 +39,7 @@ public class IndependenceDetection extends ConstrainedSolver {
         int index = 0;
         //System.out.println("problems at start: " + problemList.size());
         while (index < pathList.size()) {
-            System.out.println("checking path " + index + " for conflicts...");
+            //System.out.println("checking path " + index + " for conflicts...");
             Conflict conflict = Util.conflict(index, 0, this.pathList);
             if (conflict != null) {
                 int numProblemsBefore = problemList.size();
@@ -63,7 +63,7 @@ public class IndependenceDetection extends ConstrainedSolver {
         boolean solved = solver.solve(joined);
 
         if (!solved) return false;
-        System.out.println("conflict resolved");
+        //System.out.println("conflict resolved");
         Path joinedPath = solver.getPath();
         int offset = (indexOfConflict < index) ? -1 : 0;
         pathList.set(index + offset, joinedPath);
@@ -73,7 +73,7 @@ public class IndependenceDetection extends ConstrainedSolver {
     protected ProblemInstance handleProblemMerge(int index, int indexOfConflict) {
         ProblemInstance problem = problemList.get(index);
         ProblemInstance conflicting = problemList.get(indexOfConflict);
-        ProblemInstance joined = problem.join(conflicting);
+        ProblemInstance joined = problem.join(conflicting, false);
         problemList.set(index, joined);
         problemList.remove(indexOfConflict);
         pathList.remove(indexOfConflict);
@@ -82,9 +82,12 @@ public class IndependenceDetection extends ConstrainedSolver {
 
     protected boolean populatePaths(ProblemInstance problemInstance) {
         init();
+        // all subproblems will reference the same heuristic
         for (Agent agent : problemInstance.getAgents()) {
-            ProblemInstance newProblem = new ProblemInstance(problemInstance.getGraph(), new ArrayList<>());
-            newProblem.addAgent(agent);
+            Agent newAgent = new Agent(agent.position(), agent.goal(), 0);
+            ProblemInstance newProblem = new ProblemInstance(problemInstance.getGraph(),
+                                                             Collections.singletonList(newAgent),
+                                                             initialProblem.getTrueDistanceHeuristic());
             problemList.add(newProblem);
         }
         for (ProblemInstance problem : problemList) {
@@ -116,21 +119,8 @@ public class IndependenceDetection extends ConstrainedSolver {
         return solver;
     }
 
-    // get a list of the paths
-    //
-    //  for 0 <= i < length of longest path
-    //      for 0 <= j < numPaths
-    //          look at the jth path
-    //          add all single agents from the ith state in the path (if i >= path size, return the last one)
-    //
-
-    // think of a way with less overhead :o
-    // get list of solutions
-    // for 0 <= i < numSols
-    //      for 0 <= j < ith path length
-    //          for i + 1 <= k < numSols
-    //              check if path k has a conflict at time step j
-    // still O(numSols^2 * <pathlength>) bleh
-
+    public String toString() {
+        return "ID + " + solver;
+    }
 
 }

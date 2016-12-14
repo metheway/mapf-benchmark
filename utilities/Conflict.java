@@ -6,11 +6,11 @@ package utilities;
  */
 public class Conflict {
 
-    public static final int EMPTY = -1;
-
     private int timeStep;
     private int group1;
     private int group2;
+    private Node group1Node;
+    private Node group2Node;
 
     /**
      * Constructor that creates a conflict object
@@ -20,9 +20,15 @@ public class Conflict {
      * @param group2 the index of the second group of agents
      */
     public Conflict(int timeStep, int group1, int group2) {
+        this(timeStep, group1, group2, null, null);
+    }
+
+    public Conflict(int timeStep, int group1, int group2, Node group1Node, Node group2Node) {
         this.timeStep = timeStep;
         this.group1 = group1;
         this.group2 = group2;
+        this.group1Node = group1Node;
+        this.group2Node = group2Node;
     }
 
     /**
@@ -47,6 +53,23 @@ public class Conflict {
      */
     public int getGroup2() {
         return group2;
+    }
+
+    /**
+     * Returns the node that group occupies to cause conflict
+     * @return the node the group occupies to cause the conflict
+     */
+    public Node getGroupNode(int group) {
+        return group == group1 ? group1Node : group2Node;
+    }
+
+    /**
+     * Return the coordinate that the conflict happened at with respect to group
+     * @param group
+     * @return the coordinate that the conflict happened at with respect to group
+     */
+    public Coordinate getConflictCoordinate(int group) {
+        return new Coordinate(getTimeStep(), getGroupNode(group));
     }
 
     @Override
