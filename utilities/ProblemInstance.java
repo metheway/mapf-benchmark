@@ -57,6 +57,7 @@ public class ProblemInstance {
 		agents = deserializeAgents(problem_file);
 		graph = new Graph(connectedness, new ProblemMap(new File("src/maps/" + mapTitle)));
 		goalPositions = agentGoals();
+		trueDistanceHeuristic = new TDHeuristic(this);
 	}
 
     /**
