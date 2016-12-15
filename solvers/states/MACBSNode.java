@@ -1,208 +1,185 @@
 package solvers.states;
 
-import solvers.ConflictAvoidanceTable;
+import constants.ConflictType;
 import solvers.ConstrainedSolver;
 import solvers.MultiLevelCAT;
-import solvers.astar.MultiAgentAStar;
 import solvers.astar.State;
 import solvers.astar.TDHeuristic;
+import solvers.cbs.MACBS;
 import utilities.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class MACBSNode extends State {
 
-    /*
-    List<List<Integer>> metaAgents
-
-    needs all the functionality of the normal CBS node
-    plus the ability to handle meta-agents
-    constraints should be the same
-
-    how to store meta agents?
-    2D list of integers; metaAgents.get(0) == list of agents merged into meta-agent 0
-
-
-     */
-
-    private List<List<Integer>> metaAgents;
+    private MACBS highLevel;
     private CBSConstraint constraint;
     private List<Path> solutions;
+    private List<ProblemInstance> subProblems;
     private boolean consistent;
-    private Conflict conflict;
     private Map<Coordinate, Coordinate> constraints;
+    private Conflict conflict;
+
+    private List<List<Integer>> metaAgents;
+    private int[][] conflictCounters;
 
     private static final ProblemInstance IRRELEVANT = null;
 
-    public MACBSNode(State backPointer, CBSConstraint constraint, List<List<Integer>> metaAgents) {
-        super(backPointer);
-        this.metaAgents = metaAgents;
-        this.constraint = constraint;
-        this.solutions = new ArrayList<>(((MACBSNode) predecessor()).solutions);
-    }
 
-    public MACBSNode(ProblemInstance problemInstance, List<ConstrainedSolver> solvers, List<List<Integer>> metaAgents) {
+    // Root constructor
+    public MACBSNode(ProblemInstance problemInstance, List<List<Integer>> metaAgents, int[][] conflictCounters,
+                     MACBS highLevel, ConstrainedSolver lowLevel) {
         super(null);
-        this.solutions = new ArrayList<>();
+        solutions = new ArrayList<>();
         this.metaAgents = metaAgents;
-        for (int metaAgent = 0; metaAgent < metaAgents.size(); metaAgent++) {
-            ProblemInstance meta = metaProblem(metaAgent, problemInstance);
-            ConstrainedSolver solver = solvers.get(metaAgent);
-            consistent = solver.solve(meta);
-            Path newPath = consistent ? solver.getPath() : null;
-            solutions.add(newPath);
-        }
+        this.conflictCounters = conflictCounters;
+        this.subProblems = getSubProblems(problemInstance);
+        this.solutions = getSolutions(lowLevel);
+        this.highLevel = highLevel;
+        populateCAT();
+        conflict = highLevel.getConflictAvoidanceTable().getEarliestConflict();
         calculateCost(IRRELEVANT);
     }
 
-    private ProblemInstance metaProblem(int group, ProblemInstance problemInstance) {
-        List<Integer> grouping = metaAgents.get(group);
-        List<Agent> newAgents = new ArrayList<>();
-        for (int agent = 0; agent < grouping.size(); agent++) {
-            Agent oldAgent = problemInstance.getAgents().get(grouping.get(agent));
-            newAgents.add(new Agent(oldAgent.position(), oldAgent.goal(), agent));
-        }
-        return new ProblemInstance(problemInstance.getGraph(), newAgents);
-    }
-/*
-    private Coordinate conflictCoordinate(int index) {
-        Path path = solutions.get(index);
-        int adjustedTime = Math.min(path.size() - 1, conflict.getTimeStep());
-        MultiAgentState multiAgentState = (MultiAgentState) path.get(adjustedTime);
-        SingleAgentState conflictState = singleAgentWithCoordinate()
-    }
-*/
+    // Descendant constructor
+    public MACBSNode(MACBSNode backPointer, ConstrainedSolver lowLevel) {
+        super(backPointer);
 
-    public void replan(ConstrainedSolver solver, ProblemInstance problemInstance) {
-        populateConstraints();
-        solver.getReservation().clear();
-        solver.getConflictAvoidanceTable().clear();
+        metaAgents = backPointer.metaAgents;
+        conflictCounters = backPointer.conflictCounters;
+        subProblems = backPointer.subProblems;
 
-        for (Coordinate coordinate : constraints.keySet()) {
-            solver.getReservation().reserveCoordinate(coordinate, constraints.get(coordinate));
-        }
-
-        for (int group = 0; group < solutions.size(); group++) {
-            if (group != constraint.constrainedAgent()) {
-                Path otherPath = solutions.get(group);
-                solver.getConflictAvoidanceTable().addPath(otherPath);
-            }
-        }
-
-        solveMetaProblem(solver, problemInstance);
-        if (consistent) {
-            solutions.set(constraint.constrainedAgent(), solver.getPath());
-        }
-
+        solutions = new ArrayList<>(backPointer.solutions);
+        highLevel = backPointer.highLevel;
+        populateCAT();
+        replan(lowLevel);
         calculateCost(IRRELEVANT);
-        constraints.clear();
-
-        Path newPath = solutions.get(constraint.constrainedAgent());
-        conflict = solver.getConflictAvoidanceTable().simulatePath(newPath, constraint.constrainedAgent());
     }
 
-    private void solveMetaProblem(ConstrainedSolver solver, ProblemInstance problemInstance) {
-        ProblemInstance meta = metaProblem(constraint.constrainedAgent(), problemInstance);
-        consistent = solver.solve(meta);
-    }
-
-    private void populateConstraints() {
-        MACBSNode current = this;
-        constraints = new HashMap<>();
-        while (current != null) {
-            if (current.constraint != null) {
-                if (current.constraint.constrainedAgent()
-                        == this.constraint.constrainedAgent()) {
-                    constraints.put(current.constraint.coordinate(), current.constraint.previous());
-                }
-            }
-            current = (MACBSNode) current.predecessor();
-        }
-    }
-
-    private SingleAgentState singleAgentWithCoordinate(Coordinate coordinate, MultiAgentState multiAgentState) {
-        for (SingleAgentState singleAgentState : multiAgentState.getSingleAgentStates()) {
-            if (singleAgentState.coordinate().equals(coordinate)) {
-                return singleAgentState;
+    private void populateCAT() {
+        int index = constraint != null ? constraint.constrainedAgent() : -1;
+        highLevel.getConflictAvoidanceTable().clear();
+        for (int i = 0; i < metaAgents.size(); i++) {
+            if (i != index) {
+                Path path = solutions.get(i);
+                highLevel.getConflictAvoidanceTable().addPath(path);
             }
         }
-        return null;
     }
 
-    public void setConflict(Conflict conflict) {
-        this.conflict = conflict;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        MACBSNode macbsNode = (MACBSNode) o;
-
-        if (constraint != null ? !constraint.equals(macbsNode.constraint) : macbsNode.constraint != null) return false;
-        return solutions != null ? solutions.equals(macbsNode.solutions) : macbsNode.solutions == null;
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = constraint != null ? constraint.hashCode() : 0;
-        result = 31 * result + (solutions != null ? solutions.hashCode() : 0);
+    private List<Path> getSolutions(ConstrainedSolver lowLevel) {
+        List<Path> result = new ArrayList<>();
+        lowLevel.setConflictAvoidanceTable(highLevel.getConflictAvoidanceTable());
+        lowLevel.setReservation(highLevel.getReservation());
+        for (ProblemInstance problemInstance : subProblems) {
+            lowLevel.solve(problemInstance);
+            result.add(lowLevel.getPath());
+        }
         return result;
     }
 
-    public void updateCATViolations(MultiLevelCAT conflictAvoidanceTable) {
-        throw new NoSuchMethodError("CAT violations not recorded in CBSNode");
+    private List<ProblemInstance> getSubProblems(ProblemInstance original) {
+        List<ProblemInstance> result = new ArrayList<>();
+        List<List<Agent>> agentLists = getAgentLists(original, metaAgents);
+        agentLists.forEach(agents -> result.add(new ProblemInstance(original.getGraph(), agents,
+                                                        original.getTrueDistanceHeuristic())));
+        return result;
+    }
+
+    private List<List<Agent>> getAgentLists(ProblemInstance problemInstance, List<List<Integer>> indicesList) {
+        List<List<Agent>> result = new ArrayList<>();
+        for (List<Integer> indices : indicesList) {
+            result.add(getMetaAgent(problemInstance, indices));
+        }
+        return result;
+    }
+
+    private List<Agent> getMetaAgent(ProblemInstance problemInstance, List<Integer> indices) {
+        List<Agent> result = new ArrayList<>();
+        int trueIndex = 0;
+        for (int idx : indices) {
+            Agent toAdd = problemInstance.getAgents().get(idx);
+            result.add(new Agent(toAdd.position(), toAdd.goal(), trueIndex));
+            trueIndex++;
+        }
+        return result;
+    }
+
+    public void replan(ConstrainedSolver lowLevel) {
+        lowLevel.setConflictAvoidanceTable(highLevel.getConflictAvoidanceTable());
+        lowLevel.setReservation(highLevel.getReservation());
+        lowLevel.solve(subProblems.get(constraint.constrainedAgent()));
+        conflict = lowLevel.getConflictAvoidanceTable().simulatePath(lowLevel.getPath(), constraint.constrainedAgent());
+        incrementCounters(conflict.getGroup1(), conflict.getGroup2());
+        solutions.set(constraint.constrainedAgent(), lowLevel.getPath());
+    }
+
+    public void incrementCounters(int i, int j) {
+        conflictCounters[i][j]++;
+        conflictCounters[j][i]++;
+    }
+
+    @Override
+    protected void updateCATViolations(MultiLevelCAT cat) {
+        throw new NoSuchMethodError("MACBS Nodes do not keep track of CAT violations.");
     }
 
     @Override
     public List<State> expand(ProblemInstance problem) {
-        List<State> neighbors = new ArrayList<>();
+        List<State> result = new ArrayList<>();
+
+        Map<Integer, Integer> destToGroup = highLevel.getConflictAvoidanceTable().getAgentGroups();
 
         Coordinate conflictCoordinate1 = conflict.getConflictCoordinate(conflict.getGroup1());
-        Coordinate conflictPrev1 = conflictPrevCoordinate(conflict.getGroup1());
+        //Coordinate conflictPrevious1 = conflictPrevCoordinate(problem, conflict, conflict.getGroup1());
+        int constrained1  = destToGroup.get(conflict.getGroup1());
+        //CBSConstraint constraint1 = new CBSConstraint(constrained1, conflictCoordinate1, conflictPrevious1);
 
         Coordinate conflictCoordinate2 = conflict.getConflictCoordinate(conflict.getGroup2());
-        Coordinate conflictPrev2 = conflictPrevCoordinate(conflict.getGroup2());
+        //Coordinate confl
 
-        CBSConstraint constraint1 = new CBSConstraint(conflict.getGroup1(), conflictCoordinate1, conflictPrev1);
-        CBSConstraint constraint2 = new CBSConstraint(conflict.getGroup2(), conflictCoordinate2, conflictPrev2);
-
-        neighbors.add(new MACBSNode(this, constraint1, metaAgents));
-        neighbors.add(new MACBSNode(this, constraint2, metaAgents));
-
-        return neighbors;
+        return null;
     }
 
-    private Coordinate conflictPrevCoordinate(int group) {
-        final int NOT_FOUND = -1;
-        Path groupSolution = solutions.get(group);
-        int adjustedTime = Math.min(conflict.getTimeStep(), groupSolution.size() - 1);
-        MultiAgentState conflictMAState = (MultiAgentState) groupSolution.get(adjustedTime);
-        int agentIndex = NOT_FOUND;
-        int numAgents = conflictMAState.getSingleAgentStates().size();
-        for (int index = 0; index < numAgents && agentIndex == NOT_FOUND; index++) {
-            SingleAgentState current = conflictMAState.getSingleAgentStates().get(index);
-            if (current.coordinate().getNode().equals(conflict.getGroupNode(group))) {
-                agentIndex = index;
+    private Coordinate conflictPrevCoordinate(ProblemInstance problemInstance, Conflict conflict, int group, int goal) {
+        Path thisPath = solutions.get(group);
+        int adjustedTime = Math.min(conflict.getTimeStep() - 1, thisPath.size() - 1);
+        MultiAgentState multiAgentState = (MultiAgentState) thisPath.get(adjustedTime);
+        int otherGroup = highLevel.getConflictAvoidanceTable().getAgentGroups().get(conflict.getGroup2());
+        Path otherPath = solutions.get(otherGroup);
+        assert otherGroup != group;
+
+        if (conflict.getType() == ConflictType.COLLISION) {
+            for (SingleAgentState singleAgentState : multiAgentState.getSingleAgentStates()) {
+                if (singleAgentState.getAgentGoal() == conflict.getGroup1()) {
+                    return new Coordinate(conflict.getTimeStep() - 1, singleAgentState.coordinate().getNode());
+                }
             }
         }
 
-        Coordinate result = null;
-        if (agentIndex != NOT_FOUND) {
-            int offset = conflict.getTimeStep() >= groupSolution.size() ? 0 : -1;
-            MultiAgentState prevState = (MultiAgentState) groupSolution.get(adjustedTime + offset);
-            Coordinate prelim = prevState.getSingleAgentStates().get(agentIndex).coordinate();
-            result = new Coordinate(conflict.getTimeStep() - 1, prelim.getNode());
+        // get the coordinate the conflicting agent is at during the current time step
+        if (conflict.getType() == ConflictType.TRANSPOSITION) {
+            MultiAgentState conflicting = (MultiAgentState) otherPath.get(Math.min(conflict.getTimeStep(), otherPath.size() - 1));
+            for (SingleAgentState singleAgentState : conflicting.getSingleAgentStates()) {
+                if (singleAgentState.getAgentGoal() == conflict.getGroup2()) {
+                    return new Coordinate(conflict.getTimeStep() - 1, singleAgentState.coordinate().getNode());
+                }
+            }
         }
 
-        return result;
+        if (conflict.getType() == ConflictType.DESTINATION) {
+            Node node = problemInstance.getGraph().getNodes().get(conflict.getGroup2());
+            return new Coordinate(conflict.getTimeStep(), node);
+        }
+
+        return null;
     }
 
     @Override
     protected void calculateCost(ProblemInstance problemInstance) {
-        for(Path path : solutions) {
+        for (Path path : solutions) {
             gValue += path.cost();
         }
     }
@@ -218,8 +195,17 @@ public class MACBSNode extends State {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return 0;
+    }
+
+    @Override
     public boolean goalTest(ProblemInstance problemInstance) {
         return conflict == null;
     }
-
 }

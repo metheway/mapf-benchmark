@@ -18,8 +18,9 @@ public class Reservation extends ConflictAvoidanceTable {
     public Reservation(Map<Coordinate, List<Coordinate>> coordinateTable,
                                   Map<Coordinate, List<Integer>> groupOccupantTable,
                                   Map<Node, int[]> agentDestinations,
-                                  int lastTimeStep) {
-        super(coordinateTable, groupOccupantTable, agentDestinations, lastTimeStep);
+                                  int lastTimeStep,
+                                  Map<Integer, Integer> agentGroups) {
+        super(coordinateTable, groupOccupantTable, agentDestinations, lastTimeStep, agentGroups);
     }
 
     public void reserveCoordinate(Coordinate coordinate, Coordinate previous) {
@@ -50,6 +51,7 @@ public class Reservation extends ConflictAvoidanceTable {
         return new Reservation( baseCAT.coordinateTable,
                                 baseCAT.groupOccupantTable,
                                 baseCAT.agentDestinations,
-                                baseCAT.lastTimeStep);
+                                baseCAT.lastTimeStep,
+                                baseCAT.agentGroups);
     }
 }

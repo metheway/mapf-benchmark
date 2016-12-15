@@ -9,7 +9,7 @@ import utilities.ProblemInstance;
 import java.util.List;
 import java.util.PriorityQueue;
 
-public class MACBS implements Solver {
+public class MACBS extends ConstrainedSolver {
 
     private ConstrainedSolver solver;
     private State goal;
@@ -22,7 +22,7 @@ public class MACBS implements Solver {
     public MACBS(){}
 
     @Override
-    public boolean solve(ProblemInstance problemInstance) {
+    public boolean subSolve(ProblemInstance problemInstance) {
         return false;
     }
 
