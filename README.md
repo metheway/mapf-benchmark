@@ -1,11 +1,12 @@
 # mapf-benchmark
 A benchmarking tool for researchers working on multi-agent path finding.
 
-### Currently implemented algorithms:
-  * [Conflict-based search](https://www.aaai.org/ocs/index.php/AAAI/AAAI12/paper/view/5062/) (Sharon, et al.)
-  * [Independence Detection](http://www.aaai.org/ocs/index.php/AAAI/AAAI10/paper/view/1926) (Standley)
+### Currently implemented algorithms
+  * [Conflict Based Search](https://www.aaai.org/ocs/index.php/AAAI/AAAI12/paper/view/5062/) (Sharon, et al.)
+  * [Meta-Agent Conflict Based Search](http://www.aaai.org/ocs/index.php/SOCS/SOCS12/paper/viewFile/5402/5182) (Sharon, et al.)
+  * [Independence Detection, A* + Operator Decomposition](http://www.aaai.org/ocs/index.php/AAAI/AAAI10/paper/view/1926) (Standley)
   * Cooperative A*
-  * Multi-agent A*
+  * Multi-Agent A*
   
 ### Dependencies
 Requires Java 8.
