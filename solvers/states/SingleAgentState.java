@@ -220,7 +220,7 @@ public class SingleAgentState extends State {
         return Double.MAX_VALUE;
     }
 
-    private double calcDeltaF(SingleAgentState next, ProblemInstance problem){
+    public double calcDeltaF(SingleAgentState next, ProblemInstance problem){
         double deltaH = next.hValue(problem.getTrueDistanceHeuristic()) -
                 this.hValue(problem.getTrueDistanceHeuristic());
         return deltaH + this.getEdgeCost(next);

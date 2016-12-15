@@ -94,7 +94,7 @@ public class MultiAgentState extends State {
         for(State move : currentMoves) {
             // If move does not conflict with any previous assigned moves in current branch then:
             if (isLegalMove(currentBranch, (SingleAgentState)move)) {
-                if (shouldContinue(current, move)) {
+                if (shouldContinue(current, (SingleAgentState)move, problem)) {
                     // add this move to the current branch and call
                     currentBranch.add((SingleAgentState) move);
                     //recursive call
@@ -107,7 +107,7 @@ public class MultiAgentState extends State {
         }
     }
 
-    protected boolean shouldContinue(State current, State next){
+    protected boolean shouldContinue(SingleAgentState current, SingleAgentState next, ProblemInstance problem){
         return true;
     }
 
