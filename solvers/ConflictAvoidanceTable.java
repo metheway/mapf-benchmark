@@ -25,7 +25,7 @@ public class ConflictAvoidanceTable {
 
     protected Map<Node, int[]> agentDestinations;
     //rprotected List<Integer> relevantGroups;
-    //protected Map<Integer, Integer> agentGroups;
+    protected Map<Integer, Integer> agentGroups;
 
     private static final int DEST_TIME_STEP = 0;
     private static final int DEST_GROUP = 1;
@@ -36,15 +36,17 @@ public class ConflictAvoidanceTable {
     public ConflictAvoidanceTable(Map<Coordinate, List<Coordinate>> coordinateTable,
                                   Map<Coordinate, List<Integer>> groupOccupantTable,
                                   Map<Node, int[]> agentDestinations,
-                                  int lastTimeStep) {
+                                  int lastTimeStep,
+                                  Map<Integer,Integer> agentGroups) {
         this.coordinateTable = coordinateTable;
         this.groupOccupantTable = groupOccupantTable;
         this.agentDestinations = agentDestinations;
         this.lastTimeStep = lastTimeStep;
+        this.agentGroups = agentGroups;
     }
 
     public ConflictAvoidanceTable() {
-        this(new HashMap<>(), new HashMap<>(), new HashMap<>(), 0);
+        this(new HashMap<>(), new HashMap<>(), new HashMap<>(), 0, new HashMap<>());
     }
 
     public boolean isValid(State state) {
@@ -183,11 +185,23 @@ public class ConflictAvoidanceTable {
         for (int time = 0; time < path.size() && result == earliestConflict; time++) {
             MultiAgentState multiAgentState = (MultiAgentState) path.get(time);
             int violation = violation(multiAgentState);
+            int goalOfConflictingAgent = agentGoalFromViolation(multiAgentState, violation);
+            // violation will not be the same as group since group's agents were not loaded from the beginning
             if (violation != NO_CONFLICT) {
-                result = new Conflict(time, group, violation);
+                result = new Conflict(time, goalOfConflictingAgent, violation);
             }
         }
         return result;
+    }
+
+    private int agentGoalFromViolation(MultiAgentState multiAgentState, int violation) {
+        List<SingleAgentState> singleAgentStates = multiAgentState.getSingleAgentStates();
+        for (SingleAgentState singleAgentState : singleAgentStates) {
+            if (groupOccupantTable.get(singleAgentState.coordinate()).contains(violation)) {
+                return singleAgentState.getAgentGoal();
+            }
+        }
+        return -1;
     }
 
     private void addSingleAgentStateCoordinate(SingleAgentState singleAgentState, int group) {
@@ -295,13 +309,13 @@ public class ConflictAvoidanceTable {
     //    this.relevantGroups = relevantGroups;
     //}
 
-//    public void setAgentGroups(Map<Integer, Integer> agentGroups) {
-        //this.agentGroups = agentGroups;
-//    }
+    public void setAgentGroups(Map<Integer, Integer> agentGroups) {
+        this.agentGroups = agentGroups;
+    }
 
-//    public Map<Integer, Integer> getAgentGroups() {
-//        return agentGroups;
-//    }
+    public Map<Integer, Integer> getAgentGroups() {
+        return agentGroups;
+    }
 
     //public List<Integer> getRelevantGroups() {
     //    return relevantGroups;
@@ -332,7 +346,7 @@ public class ConflictAvoidanceTable {
             newAgentDestinations.put(key, new int[] {val[0], val[1]});
         }
 
-        return new ConflictAvoidanceTable(newCoordinateTable, newGroupTable, newAgentDestinations, lastTimeStep);
+        return new ConflictAvoidanceTable(newCoordinateTable, newGroupTable, newAgentDestinations, lastTimeStep, new HashMap<>());
 
     }
 

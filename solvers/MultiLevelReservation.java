@@ -94,17 +94,21 @@ public class MultiLevelReservation {
         return reservationList.get(reservationList.size() - 1).getCoordinateTable();
     }
 
+    public Conflict getEarliestConflict() {
+        return reservationList.get(reservationList.size() - 1).getEarliestConflict();
+    }
+
     //public void setRelevantGroups(List<Integer> relevantGroups) {
     //    reservationList.get(reservationList.size() - 1).setRelevantGroups(relevantGroups);
     //}
 
-    public void setAgentGroups(Map<Integer, Integer> agentGroups) {
-        reservationList.get(reservationList.size() - 1).setAgentGroups(agentGroups);
-    }
+    //public void setAgentGroups(Map<Integer, Integer> agentGroups) {
+    //    reservationList.get(reservationList.size() - 1).setAgentGroups(agentGroups);
+    //}
 
-    public Map<Integer, Integer> getAgentGroups() {
-        return reservationList.get(reservationList.size() - 1).getAgentGroups();
-    }
+    //public Map<Integer, Integer> getAgentGroups() {
+    //    return reservationList.get(reservationList.size() - 1).getAgentGroups();
+    //}
 
     //public List<Integer> getRelevantGroups() {
     //    return reservationList.get(reservationList.size() - 1).getRelevantGroups();

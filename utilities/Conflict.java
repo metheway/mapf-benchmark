@@ -44,6 +44,10 @@ public class Conflict {
         this.type = type;
     }
 
+    public ConflictType getType() {
+        return type;
+    }
+
     /**
      * Returns the time step of the conflict
      * @return the time step of the conflict

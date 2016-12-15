@@ -79,6 +79,10 @@ public class MultiLevelCAT {
         return catList.get(catList.size() - 1).getCoordinateTable();
     }
 
+    public Conflict getEarliestConflict() {
+        return catList.get(catList.size() - 1).getEarliestConflict();
+    }
+
     //public void setRelevantGroups(List<Integer> relevantGroups) {
     //    catList.get(catList.size() - 1).setRelevantGroups(relevantGroups);
     //}

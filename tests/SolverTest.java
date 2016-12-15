@@ -28,8 +28,8 @@ public class SolverTest {
 		//testSingleAgent();
         testMultiAgent();
         //testIndependenceDetection();
-        //testReservation();
-        testCATInheritance();
+        testReservation();
+        //testCATInheritance();
 	}
 
 	public static void testSingleAgent() throws FileNotFoundException {
@@ -45,13 +45,14 @@ public class SolverTest {
 	}
 
 	public static void testMultiAgent() throws FileNotFoundException {
-        ProblemMap problemMap = new ProblemMap(new File("src/maps/test.map"));
+        ProblemMap problemMap = new ProblemMap(new File("src/maps/maze512-1-0.map"));
         Graph graph = new Graph(Connected.EIGHT, problemMap);
         Agent a1 = new Agent(0, 4, 0);
         Agent a2 = new Agent(5, 9, 1);
         Agent a3 = new Agent(10, 14, 2);
-        ProblemInstance problemInstance = new ProblemInstance(graph, Arrays.asList(a1, a2, a3));
-        MultiAgentAStar solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
+        ProblemInstance problemInstance = new ProblemInstance(graph, 7);
+        //MultiAgentAStar solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
+        OperatorDecomposition solver = new OperatorDecomposition();
         if (solver.solve(problemInstance)) {
             for (State s : solver.getPath()) {
                 s.printIndices();
@@ -68,10 +69,10 @@ public class SolverTest {
             agentMap.put(problemInstance.getAgents().get(i).goal(), i);
         }
         System.out.println(agentMap);
-        solver.getConflictAvoidanceTable().setAgentGroups(agentMap);
+        //solver.getConflictAvoidanceTable().setAgentGroups(agentMap);
         //solver.getConflictAvoidanceTable().setRelevantGroups(Arrays.asList(0, 1, 2));
         System.out.println(solver.getConflictAvoidanceTable().getGroupOccupantTable());
-        System.out.println(solver.getConflictAvoidanceTable().getAgentGroups().get(4));
+        //System.out.println(solver.getConflictAvoidanceTable().getAgentGroups().get(4));
         SingleAgentState singleAgentState = new SingleAgentState(2, problemInstance);
         System.out.println(singleAgentState.coordinate());
         System.out.println("should be true: " + solver.getConflictAvoidanceTable().isValid(singleAgentState));
@@ -100,12 +101,16 @@ public class SolverTest {
     public static void testReservation() throws FileNotFoundException {
         ProblemMap problemMap = new ProblemMap(new File("src/maps/reservation_test.map"));
         Graph graph = new Graph(Connected.EIGHT, problemMap);
-        ProblemInstance problemInstance = new ProblemInstance(graph, Collections.singletonList(new Agent(0, 1, 0)));
+        ProblemInstance problemInstance = new ProblemInstance(graph, Arrays.asList(new Agent(0, 2, 0), new Agent(1, 1, 1)));
         MultiAgentAStar solver = new MultiAgentAStar(CostFunction.SUM_OF_COSTS);
-        solver.getReservation().reserveCoordinate(null, new Coordinate(1, graph.getNodes().get(1)));
-        System.out.println("Last time step of reservation = " + solver.getReservation().getLastTimeStep());
+        //solver.getReservation().reserveCoordinate(null, new Coordinate(1, graph.getNodes().get(1)));
+        //System.out.println("Last time step of reservation = " + solver.getReservation().getLastTimeStep());
+
         System.out.println(solver.solve(problemInstance));
-        System.out.println(solver.getPath().cost());
+        for (State state : solver.getPath()) {
+            state.printIndices();
+        }
+        System.out.println();
     }
 
     public static void testCAT() throws FileNotFoundException {
